@@ -51,7 +51,7 @@
 | 第 11 章. [高階處理器](cpu.html) |         |                |                                           |
 | ─ [哈佛架構](harvard.html)             |                |                |                                           |
 | ─ [流水線](pipeline.html)             |                |                |                                           |
-| - [CPU0 指令集](mcu0.html)           |                |                |                                           |
+| - [CPU0 指令集](cpu0.html)           |                |                |                                           |
 | - [CPU0 迷你版](cpu0m.html)           |                |                |                                           |
 | - [CPU0 完整版](cpu0s.html)           |                |                |                                           |
 | 第 12 章. [速度議題](speed.html) |         |                |                                           |
