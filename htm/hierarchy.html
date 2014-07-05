@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#記憶體階層-memory-hierarchy">記憶體階層 (Memory Hierarchy)</a></li>
+</ul>
+</div>
+<h2 id="記憶體階層-memory-hierarchy"><a href="#記憶體階層-memory-hierarchy">記憶體階層 (Memory Hierarchy)</a></h2>
+<div class="figure">
+<img src="../img/hierarchy3.jpg" alt="圖、常見的三層式記憶體階層" /><p class="caption">圖、常見的三層式記憶體階層</p>
+</div>
+<p>在上圖中，cache 是直接封裝在 CPU 內部的靜態記憶體，其運作速度與 CPU 的內部電路一樣快，因此可以在 1 個 Clock Cycle 之內完成存取。</p>
+<p>而身為主記憶體的 DRAM，速度比靜態記憶體慢上數十倍，因此必須耗費幾十個 Cycle 才能完成存取。</p>
+<p>最下層的「硬碟」 (hard disk) 速度更慢，由於依賴讀寫頭與硬盤轉動的機械性動作，因此又比 DRAM 慢上數百倍 (雖然轉到了之後讀取還算快速，但是仍然相對緩慢，而且每次必須讀一大塊，否則轉了好久才讀 1 個 byte 將會慢如蝸牛)。</p>
+<p>當然、有些電腦包含更多種類的記憶單元，這些記憶裝置的速度與容量不一，以下是一個更多層次的記憶階層範例。</p>
+<div class="figure">
+<img src="../img/hierarchy.jpg" alt="圖、更多層次的記憶體階層" /><p class="caption">圖、更多層次的記憶體階層</p>
+</div>
+<p>為了要讓電腦能夠又快又大，「高階處理器」通常採用了「快取」(cache) 與「記憶體管理單元」(MMU) 等兩個技術，其中的 cache 位於 CPU 內部，用來儲存常用的「指令與資料」，而 MMU 則是利用「分段或分頁」等機制，讓記憶體管理更有效率，甚至可以用「虛擬記憶體」技術把「硬碟」拿來當「備援記憶體」使用，讓容量可以進一步提升。</p>
+<p>當然、要使用這些「快取」與「暫存」技術，都必須付出相對應的代價，那就是讓你的 CPU 設計更加複雜，而且有時也會「快不起來」。</p>
+<p>(套句俗話說，出來混的，總有一天是要還的，CPU 的設計也是如此)</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#mcu0-指令集">MCU0 指令集</a></li>
+</ul>
+</div>
+<h2 id="mcu0-指令集"><a href="#mcu0-指令集">MCU0 指令集</a></h2>
+<p>MCU0 是一顆 16 位元的 CPU，所有暫存器都是 16 位元的，總共有 (IR, SP, LR, SW, PC, A) 等暫存器，如下所示：</p>
+<pre><code>`define A    R[0]      // 累積器
+`define LR   R[1]      // 狀態暫存器
+`define SW   R[2]      // 狀態暫存器
+`define SP   R[3]      // 堆疊暫存器
+`define PC   R[4]      // 程式計數器</code></pre>
+<p>這些暫存器的功能與說明如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">暫存器名稱</th>
+<th align="left">功能</th>
+<th align="left">說明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">IR</td>
+<td align="left">指令暫存器</td>
+<td align="left">用來儲存從記憶體載入的機器碼指令</td>
+</tr>
+<tr class="even">
+<td align="left">A =R[0]</td>
+<td align="left">累積器</td>
+<td align="left">用來儲存計算的結果，像是加減法的結果。</td>
+</tr>
+<tr class="odd">
+<td align="left">LR=R[1]</td>
+<td align="left">連結暫存器</td>
+<td align="left">用來儲存函數呼叫的返回位址</td>
+</tr>
+<tr class="even">
+<td align="left">SW=R[2]</td>
+<td align="left">狀態暫存器</td>
+<td align="left">用來儲存 CMP 比較指令的結果旗標，像是負旗標 N 與零旗標 Z 等。作為條件跳躍 JEQ 等指令是否跳躍的判斷依據。</td>
+</tr>
+<tr class="odd">
+<td align="left">SP=R[3]</td>
+<td align="left">堆疊暫存器</td>
+<td align="left">堆疊指標，PUSH, POP 指令會用到。</td>
+</tr>
+<tr class="even">
+<td align="left">PC=R[4]</td>
+<td align="left">程式計數器</td>
+<td align="left">用來儲存指令的位址 (也就是目前執行到哪個指令的記憶體位址)</td>
+</tr>
+</tbody>
+</table>
+<p>MCU0 的指令暫存器 IR 的前 4 個位元是指令代碼 OP，由於 4 位元只能表達 16 種指令，這數量太少不敷使用，因此當 OP=0xF 時， 我們繼續用後面的位元作為延伸代碼，以便有更多的指令可以使用，以下是 MCU0 微控制器的完整指令表。</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">代碼</th>
+<th align="left">名稱</th>
+<th align="left">格式</th>
+<th align="left">說明</th>
+<th align="left">語意</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="left">LD</td>
+<td align="left">LD C</td>
+<td align="left">載入</td>
+<td align="left">A = [C]</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">ST</td>
+<td align="left">ST C</td>
+<td align="left">儲存</td>
+<td align="left">[C] = A</td>
+</tr>
+<tr class="odd">
+<td align="left">2</td>
+<td align="left">ADD</td>
+<td align="left">ADD C</td>
+<td align="left">加法</td>
+<td align="left">A = A + [C]</td>
+</tr>
+<tr class="even">
+<td align="left">3</td>
+<td align="left">SUB</td>
+<td align="left">SUB C</td>
+<td align="left">減法</td>
+<td align="left">A = A - [C]</td>
+</tr>
+<tr class="odd">
+<td align="left">4</td>
+<td align="left">MUL</td>
+<td align="left">MUL C</td>
+<td align="left">乘法</td>
+<td align="left">A = A * [C]</td>
+</tr>
+<tr class="even">
+<td align="left">5</td>
+<td align="left">DIV</td>
+<td align="left">DIV C</td>
+<td align="left">除法</td>
+<td align="left">A = A / [C]</td>
+</tr>
+<tr class="odd">
+<td align="left">6</td>
+<td align="left">AND</td>
+<td align="left">AND C</td>
+<td align="left">位元 AND 運算</td>
+<td align="left">A = A &amp; [C]</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="left">OR</td>
+<td align="left">OR C</td>
+<td align="left">位元 OR 運算</td>
+<td align="left">A = A | [C]</td>
+</tr>
+<tr class="odd">
+<td align="left">8</td>
+<td align="left">XOR</td>
+<td align="left">XOR C</td>
+<td align="left">位元 XOR 運算</td>
+<td align="left">A = A ^ [C]</td>
+</tr>
+<tr class="even">
+<td align="left">9</td>
+<td align="left">CMP</td>
+<td align="left">CMP C</td>
+<td align="left">比較</td>
+<td align="left">SW = A CMP [C] ; N=(A&lt;[C]), Z=(A==[C])</td>
+</tr>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">JMP</td>
+<td align="left">JMP C</td>
+<td align="left">跳躍</td>
+<td align="left">PC = C</td>
+</tr>
+<tr class="even">
+<td align="left">B</td>
+<td align="left">JEQ</td>
+<td align="left">JEQ C</td>
+<td align="left">相等時跳躍</td>
+<td align="left">if Z then PC = C</td>
+</tr>
+<tr class="odd">
+<td align="left">C</td>
+<td align="left">JLT</td>
+<td align="left">JLT C</td>
+<td align="left">小於時跳躍</td>
+<td align="left">if N then PC = C</td>
+</tr>
+<tr class="even">
+<td align="left">D</td>
+<td align="left">JLE</td>
+<td align="left">JLE C</td>
+<td align="left">小於或等於時跳躍</td>
+<td align="left">if Z or N then PC = C</td>
+</tr>
+<tr class="odd">
+<td align="left">E</td>
+<td align="left">CALL</td>
+<td align="left">CALL C</td>
+<td align="left">呼叫副程式</td>
+<td align="left">LR=PC; PC = C</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">OP8</td>
+<td align="left"></td>
+<td align="left">OP為8位元的運算</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">F0</td>
+<td align="left">LDI</td>
+<td align="left">LDI Ra,C4</td>
+<td align="left">載入常數</td>
+<td align="left">Ra=C4</td>
+</tr>
+<tr class="even">
+<td align="left">F2</td>
+<td align="left">MOV</td>
+<td align="left">MOV Ra,Rb</td>
+<td align="left">暫存器移動</td>
+<td align="left">Ra=Rb</td>
+</tr>
+<tr class="odd">
+<td align="left">F3</td>
+<td align="left">PUSH</td>
+<td align="left">PUSH Ra</td>
+<td align="left">堆疊推入</td>
+<td align="left">SP--; [SP] = Ra</td>
+</tr>
+<tr class="even">
+<td align="left">F4</td>
+<td align="left">POP</td>
+<td align="left">POP Ra</td>
+<td align="left">堆疊取出</td>
+<td align="left">Ra=[SP]; SP++;</td>
+</tr>
+<tr class="odd">
+<td align="left">F5</td>
+<td align="left">SHL</td>
+<td align="left">SHL Ra,C4</td>
+<td align="left">左移</td>
+<td align="left">Ra = Ra &lt;&lt; C4</td>
+</tr>
+<tr class="even">
+<td align="left">F6</td>
+<td align="left">SHR</td>
+<td align="left">SHL Ra,C4</td>
+<td align="left">右移</td>
+<td align="left">Ra = Ra &gt;&gt; C4</td>
+</tr>
+<tr class="odd">
+<td align="left">F7</td>
+<td align="left">ADDI</td>
+<td align="left">ADDI Ra,C4</td>
+<td align="left">常數加法</td>
+<td align="left">Ra = Ra + C4</td>
+</tr>
+<tr class="even">
+<td align="left">F8</td>
+<td align="left">SUBI</td>
+<td align="left">SUBI Ra,C4</td>
+<td align="left">常數減法</td>
+<td align="left">Ra = Ra - C4</td>
+</tr>
+<tr class="odd">
+<td align="left">F9</td>
+<td align="left">NEG</td>
+<td align="left">NEG Ra</td>
+<td align="left">反相</td>
+<td align="left">Ra = ~Ra</td>
+</tr>
+<tr class="even">
+<td align="left">FA</td>
+<td align="left">SWI</td>
+<td align="left">SWI C</td>
+<td align="left">軟體中斷</td>
+<td align="left">BIOS 中斷呼叫</td>
+</tr>
+<tr class="odd">
+<td align="left">FD</td>
+<td align="left">NSW</td>
+<td align="left">NSW</td>
+<td align="left">狀態反相</td>
+<td align="left">N=~N, Z=~Z; 由於沒有 JGE, JGT, JNE，因此可用此指令將 SW 反相，再用 JLE, JLT, JEQ 完成跳躍動作</td>
+</tr>
+<tr class="even">
+<td align="left">FE</td>
+<td align="left">RET</td>
+<td align="left">RET</td>
+<td align="left">返回</td>
+<td align="left">PC = LR</td>
+</tr>
+<tr class="odd">
+<td align="left">FF</td>
+<td align="left">IRET</td>
+<td align="left">IRET</td>
+<td align="left">從中斷返回</td>
+<td align="left">PC = LR; I=0;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

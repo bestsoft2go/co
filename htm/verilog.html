@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#硬體描述語言----verilog">硬體描述語言 -- Verilog</a><ul>
+<li><a href="#verilog-基礎">Verilog 基礎</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="硬體描述語言----verilog"><a href="#硬體描述語言----verilog">硬體描述語言 -- Verilog</a></h1>
+<p>Verilog 與 VHDL 都是用來設計數位電路的硬體描述語言，但 VHDL 在1983年被提出後，1987　年被美國國防部和IEEE確定為標準的硬體描述語言。</p>
+<p>Verilog 是由 Gateway Design Automation 公司於 1984 年開始發展的， Cadence Design Systems 公司於 1990 年購併了 Gateway 公司，Cadence 隨後將 Verilog 提交到 Open Verilog International 成為開放公用標準，1995 年 Verilog 被 IEEE 認可成為 IEEE 1364-1995 標準，簡稱為 Verilog-95。此一標準於 2001 年更新後成為 Verilog-2001。</p>
+<p>相較於 VHDL 而言，Verilog 的語法較為簡潔，因此經常被專業的數位電路設計者採用，而 VHDL 的使用族群則有較多的初學者。當我們想學習數位電路設計時，經常會難以選擇要用哪一種語言，因為 VHDL 的書籍與教材似乎 比 Verilog 多一些，但是 Verilog 的高階設計電路（像是開放原始碼 CPU 等）則比 VHDL 多很多。</p>
+<p>筆者是為了要設計 CPU 而學習數位電路設計的，因此決定學習 Verilog 語言，而非 VHDL 語言。雖然筆者也學過 VHDL 語言，但後來發現 Verilog 相當好，相對而言語法簡潔了許多，因此筆者比較偏好 Verilog 語言。</p>
+<p>在本文中，我們將介紹 Verilog 的基本語法，並且採用 Icarus 作為主要開發測試工具，以便讓讀者能很快的進入 Verilog 硬體設計的領域。</p>
+<h2 id="verilog-基礎"><a href="#verilog-基礎">Verilog 基礎</a></h2>
+<h3 id="verilog-的基本型態"><a href="#verilog-的基本型態">Verilog 的基本型態</a></h3>
+<p>在一般的程式語言當中，資料的最基本型態通常是「位元」(bit)，但是在 Verilog 這種「硬體描述語言」當中， 我們必須有「面向硬體」的思考方式，因此最基本的型態從「位元」轉換為「線路」(wire)。</p>
+<p>一條線路的可能值，除了 0 與 1 之外，還有可能是未定值 X ，以及高阻抗 Z，如下表所示：</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">值</th>
+<th align="left">意義</th>
+<th align="left">說明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="left">低電位</td>
+<td align="left">布林代數中的假值</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">高電位</td>
+<td align="left">布林代數中的真值</td>
+</tr>
+<tr class="odd">
+<td align="left">Z</td>
+<td align="left">高阻抗</td>
+<td align="left">三態緩衝器的輸出，高阻抗斷線</td>
+</tr>
+<tr class="even">
+<td align="left">X</td>
+<td align="left">未定值</td>
+<td align="left">像是線路未初始化之前，以及有 0,1 兩者衝突的線路值，或者是輸入為 Z 的輸出值</td>
+</tr>
+</tbody>
+</table>
+<p>其中的 0 對應到低電位、 1 對應到高電位，這是比較容易理解的部分，但是未定值 X 與高阻抗 Z 各代表甚麼意義呢？</p>
+<p>對於一條沒有阻抗的線路而言，假如我們在某點對該線路輸出 1, 另一點對該線路輸出 0，那麼這條線路到底應該是 高電位還是低電位呢？</p>
+<div class="figure">
+<img src="../img/VerilogWireX.jpg" alt="圖、造成未定值 X 的情況" /><p class="caption">圖、造成未定值 X 的情況</p>
+</div>
+<p>對於這種衝突的情況，Verilog 採用 X 來代表該線路的值。</p>
+<p>而高阻抗，則基本上是代表斷線，您可以想像該線路如果是「非導體」，例如「塑膠、木頭、開關開路、或者是處於高阻抗 情況的半導體」等，就會使用者種 Z 值來代表。</p>
+<p>根據這樣的四種線路狀態，一個原本簡易的 AND 閘，在數位邏輯中只要用 <code>2*2</code> 的真值表就能表示了，但在 Verilog 當中則有 <code>4*4</code> 種可能的情況，以下是 Verilog 中各種運算 (AND, OR, XOR, XNOR) 在這四種型態上的真值表定義：</p>
+<table style="border:0;width:500px;">
+<tr>
+<td style="border:0;">
+
+<table>
+<thead>
+<tr class="header">
+<th align="left">AND (&amp;)</th>
+<th align="left">0</th>
+<th align="left">1</th>
+<th align="left">X</th>
+<th align="left">Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="odd">
+<td align="left">X</td>
+<td align="left">0</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">Z</td>
+<td align="left">0</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+</tbody>
+</table>
+</td><td style="border:0;">
+
+<table>
+<thead>
+<tr class="header">
+<th align="left">OR (|)</th>
+<th align="left">0</th>
+<th align="left">1</th>
+<th align="left">X</th>
+<th align="left">Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">Z</td>
+<td align="left">X</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td style="border:0;">
+
+<table>
+<thead>
+<tr class="header">
+<th align="left">XOR(^)</th>
+<th align="left">0</th>
+<th align="left">1</th>
+<th align="left">X</th>
+<th align="left">Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="odd">
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">Z</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+</tbody>
+</table>
+</td><td style="border:0;">
+
+<table>
+<thead>
+<tr class="header">
+<th align="left">XNOR(^~)</th>
+<th align="left">0</th>
+<th align="left">1</th>
+<th align="left">X</th>
+<th align="left">Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="odd">
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+<tr class="even">
+<td align="left">Z</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+<td align="left">X</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</table>
+
+<p>在 Verilog 當中，如果我們要宣告一條線路，只要用下列語法就可以了：</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">wire</span> w1;</code></pre>
+<p>如果我們想一次宣告很多條線路，那麼我們可以用很多個變數描述：</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">wire</span> w, x, y, z;</code></pre>
+<p>但是如果我們想宣告一整個排線 (例如匯流排)，那我們就可以用下列的陣列語法：</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">wire</span> [<span class="dv">31</span>:<span class="dv">0</span>] bus;</code></pre>
+<p>如果想要一次宣告很多組排線，那我們就可以用下列的陣列群語法：</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">wire</span> [<span class="dv">31</span>:<span class="dv">0</span>] bus [<span class="dv">0</span>:<span class="dv">3</span>];</code></pre>
+<p>當然、除了線路之外，Verilog 還有可以穩定儲存位元的型態，稱為 reg (暫存器)，reg 可以用來 儲存位元，而非像線路一樣只是「一種連接方式」而已，以下是一些 reg 的宣告方式：</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">reg</span> w;                 <span class="co">// 宣告一位元的暫存器變數 w</span>
+<span class="dt">reg</span> x, y, z;           <span class="co">// 宣告三個一位元的暫存器變數 x, y, z</span>
+<span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] r1;         <span class="co">// 宣告 32 位元的暫存器 r1</span>
+<span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] R [<span class="dv">0</span>:<span class="dv">15</span>];   <span class="co">// 宣告 16 個 32 位元的暫存器群組 R[0..15]</span></code></pre>
+<p>在 Verilog 中，wire 與 reg 是比較常用的基本型態，另外還有一些較不常用的基本型態， 像是 tri (三態線路)、trireg (三態暫存器)、integer (整數) 等，在此我們先不進行介紹。</p>
+<h3 id="icarus-verilog-的編譯執行工具"><a href="#icarus-verilog-的編譯執行工具">Icarus ： Verilog 的編譯執行工具</a></h3>
+<p>Icarus 是由 Stephen Williams 所設計的 Verilog 開發工具，採用 GPL 授權協議，並且可以在 Linux, BSD, OS X, MS Windows 等環境下執行。</p>
+<p>Icarus 支援 Verilog 的 IEEE 1995、IEEE 2001 和 IEEE 2005 三種標準語法，也支援部分的 SystemVerilog 語法，其官方網站網址如下：</p>
+<ul>
+<li><a href="http://iverilog.icarus.com/">http://iverilog.icarus.com/</a></li>
+</ul>
+<p>如果您是 MS Windows 的使用者，可以從以下網址中下載 Icarus 的 MS Windows 版本，其安裝非常容易：</p>
+<ul>
+<li><a href="http://bleyer.org/icarus/">http://bleyer.org/icarus/</a></li>
+</ul>
+<h3 id="範例-1xor3-的電路"><a href="#範例-1xor3-的電路">範例 1：XOR3 的電路</a></h3>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> xor3(<span class="dt">input</span> a, b, c, <span class="dt">output</span> abc);
+<span class="dt">wire</span> ab;
+<span class="dt">xor</span> g1(ab, a, b);
+<span class="dt">xor</span> g2(abc, c, ab);
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> xor3test;
+<span class="dt">reg</span> a, b, c;
+<span class="dt">wire</span> abc;
+
+xor3 g(a,b,c, abc);
+
+<span class="kw">initial</span>
+<span class="kw">begin</span>
+  a = <span class="dv">0</span>;
+  b = <span class="dv">0</span>;
+  c = <span class="dv">0</span>;
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#50</span> <span class="kw">begin</span>
+  a = a<span class="dv">+1</span>;
+  <span class="dt">$monitor</span>(<span class="st">&quot;%4dns monitor: a=%d b=%d c=%d a^b^c=%d&quot;</span>, <span class="dt">$stime</span>, a, b, c, abc);
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#100</span> <span class="kw">begin</span>
+  b = b<span class="dv">+1</span>;
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#200</span> <span class="kw">begin</span>
+  c = c<span class="dv">+1</span>;
+<span class="kw">end</span>
+
+<span class="kw">initial</span> <span class="bn">#2000</span> <span class="dt">$finish</span>;
+
+<span class="kw">endmodule</span></code></pre>
+<p>Icarus 執行結果</p>
+<pre><code>D:\ccc101\icarus\ccc&gt;iverilog -o xor3test xor3test.v
+
+D:\ccc101\icarus\ccc&gt;vvp xor3test
+  50ns monitor: a=1 b=0 c=0 a^b^c=1
+ 100ns monitor: a=0 b=1 c=0 a^b^c=1
+ 150ns monitor: a=1 b=1 c=0 a^b^c=0
+ 200ns monitor: a=0 b=0 c=1 a^b^c=1
+ 250ns monitor: a=1 b=0 c=1 a^b^c=0
+ 300ns monitor: a=0 b=1 c=1 a^b^c=0
+ 350ns monitor: a=1 b=1 c=1 a^b^c=1
+ 400ns monitor: a=0 b=0 c=0 a^b^c=0
+ 450ns monitor: a=1 b=0 c=0 a^b^c=1
+ 500ns monitor: a=0 b=1 c=0 a^b^c=1
+ 550ns monitor: a=1 b=1 c=0 a^b^c=0
+ 600ns monitor: a=0 b=0 c=1 a^b^c=1
+ 650ns monitor: a=1 b=0 c=1 a^b^c=0
+ 700ns monitor: a=0 b=1 c=1 a^b^c=0
+ 750ns monitor: a=1 b=1 c=1 a^b^c=1
+ 800ns monitor: a=0 b=0 c=0 a^b^c=0
+ 850ns monitor: a=1 b=0 c=0 a^b^c=1
+ 900ns monitor: a=0 b=1 c=0 a^b^c=1
+ 950ns monitor: a=1 b=1 c=0 a^b^c=0
+1000ns monitor: a=0 b=0 c=1 a^b^c=1
+1050ns monitor: a=1 b=0 c=1 a^b^c=0
+1100ns monitor: a=0 b=1 c=1 a^b^c=0
+1150ns monitor: a=1 b=1 c=1 a^b^c=1
+1200ns monitor: a=0 b=0 c=0 a^b^c=0
+1250ns monitor: a=1 b=0 c=0 a^b^c=1
+1300ns monitor: a=0 b=1 c=0 a^b^c=1
+1350ns monitor: a=1 b=1 c=0 a^b^c=0
+1400ns monitor: a=0 b=0 c=1 a^b^c=1
+1450ns monitor: a=1 b=0 c=1 a^b^c=0
+1500ns monitor: a=0 b=1 c=1 a^b^c=0
+1550ns monitor: a=1 b=1 c=1 a^b^c=1
+1600ns monitor: a=0 b=0 c=0 a^b^c=0
+1650ns monitor: a=1 b=0 c=0 a^b^c=1
+1700ns monitor: a=0 b=1 c=0 a^b^c=1
+1750ns monitor: a=1 b=1 c=0 a^b^c=0
+1800ns monitor: a=0 b=0 c=1 a^b^c=1
+1850ns monitor: a=1 b=0 c=1 a^b^c=0
+1900ns monitor: a=0 b=1 c=1 a^b^c=0
+1950ns monitor: a=1 b=1 c=1 a^b^c=1
+2000ns monitor: a=0 b=0 c=0 a^b^c=0</code></pre>
+<p>仔細觀察上述輸出結果，您會發現這個結果與真值表的內容完全一致，因此驗證了該設計的正確性！</p>
+<p>透過這種方式，您就可以用 Verilog 設計電路的程式，然後用 Icarus 編譯並驗證電路是否正確。</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

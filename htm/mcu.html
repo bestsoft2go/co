@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#微處理器-micro-processor">微處理器 (Micro Processor)</a></li>
+</ul>
+</div>
+<h1 id="微處理器-micro-processor"><a href="#微處理器-micro-processor">微處理器 (Micro Processor)</a></h1>
+<p>現代的處理器通常會被分為「微處理器」與「高階處理器」兩類。</p>
+<p>微處理器指的是能力較弱，通常指令長度較短，以 8 位於為主，少數為 16 位元，像是 8051、AVR8 或 PIC 等處理器，這些處理器通常不會搭配外部記憶體，因此常用在「單晶片」或者「嵌入式系統」當中。</p>
+<p>而高階處理器則是能力較強，通常指令寬度較大 (32 位元以上)，像是 Intel 的 x86 等等，高階的 ARM11、ARM Cortex 處理器等等，這些處理器的定址空間很大，可以搭配容量很大的記憶體 (ex: 4GB)，而且速度很快，因此需要內建「記憶體管理單元」(Memory Management Unit, MMU) 與多層快取機制 (cache) ，以便能夠充分發揮處理器的效能。</p>
+<p>在本章當中，我們將透過 mcu0 這個簡易的架構，說明「微處理器」的設計方法。</p>
+<p>當然、「微處理器」的設計方法有很多種，在本章中我們將展示兩種設計方法，一種是「流程式」的設計法，這種方法比較符合「軟體程式人」的設計習慣，寫起來有點類似 C 語言的寫法。</p>
+<p>另一種是「區塊式」的設計法，這種方法是傳統「硬體人」的設計方法，採用像積木一樣的方式由下往上拼接出來，然後再透過線路連接各個區塊形成一個更大的區塊。</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

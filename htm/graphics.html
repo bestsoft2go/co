@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#繪圖加速功能-graphics">繪圖加速功能 (Graphics)</a></li>
+</ul>
+</div>
+<h2 id="繪圖加速功能-graphics"><a href="#繪圖加速功能-graphics">繪圖加速功能 (Graphics)</a></h2>
+<p>在 3D 的遊戲或動畫的運算當中，經常要計算向量的加法、內積的浮點數運算，而且這些運算通常獨立性很高，可以採用平行的方式計算，所以就需要在繪圖處理器 GPU 當中內建很多平行的向量式浮點運算器來加速此一計算過程。</p>
+<p>舉例而言，當我們想計算下列的 N 維向量加法時，如果採用 GPU 就會快上很多：</p>
+<pre class="sourceCode CPP"><code class="sourceCode cpp"><span class="kw">for</span> (i=<span class="dv">0</span>; i&lt;N; i++)
+  C[i] = A[i]+B[i];</code></pre>
+<p>當這樣的程式被放到 GPU 去執行時，可能會翻譯出如下的組合語言。</p>
+<pre><code>        LD          R1, N
+        LD          R2, A
+        LD          R3, B
+        LD          R4, C
+LOOP:   VectorLoad  V2, [R2]
+        VectorLoad  V3, [R3]
+        VectorAdd   V4, V2, V3
+        VectorStore V4, [R4]
+        ADD         R2, R2, 4*L
+        ADD         R3, R3, 4*L
+        ADDd        R4, R4, 4*L
+        SUB         R5, R5, L
+        CMP         R5, R0
+        JGE         LOOP</code></pre>
+<p>如果上述 GPU 的一次可以計算的浮點長度為 L 個，那麼整個計算幾乎就可以快上 L 倍了。</p>
+<p>GPU 通常有著與 CPU 不同的指令集，像是 GPU 大廠 NVIDIA 的 CUDA 就是一種 GPU 指令集， NVIDIA 甚至還為 CUDA 設計了一種擴充式的 C 語言 -- 稱為 CUDA C，這種 C 語言可以用標記指定哪些部份應該展開到 CPU 當中，哪些應該展開到 GPU 當中，以及如何有效的運用 GPU 進行向量計算等等。甚至、 CUDA 還提供了專用的函式庫，以便讓 CUDA C 能夠方便的呼叫這些常用的繪圖函數。</p>
+<p>另外、為了讓各家廠商的 CPU 與 GPU 可以更有效的合作，甚至有組織制定了一種稱為 OpenCL 的標準，可以讓各家廠商的 CPU 與 GPU 可以在一個標準架構下進行協同運算，以便有效的運用這些異質處理器的效能。</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

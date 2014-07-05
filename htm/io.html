@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#輸出入單元-io">輸出入單元 (I/O)</a><ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#bus-總線-匯流排">BUS (總線, 匯流排)</a></li>
+<li><a href="#同步匯流排-synchronous-bus">同步匯流排 (Synchronous BUS)</a></li>
+<li><a href="#異步匯流排-asynchronous-bus">異步匯流排 (Asynchronous BUS)</a></li>
+<li><a href="#匯流排仲裁-bus-arbitery">匯流排仲裁 (BUS arbitery)</a></li>
+<li><a href="#循序與平行輸出入-serial-vs.-parallel">循序與平行輸出入 (Serial vs. Parallel)</a></li>
+<li><a href="#常見的輸出入協定">常見的輸出入協定</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="輸出入單元-io"><a href="#輸出入單元-io">輸出入單元 (I/O)</a></h1>
+<h2 id="前言"><a href="#前言">前言</a></h2>
+<div class="figure">
+<img src="../img/pcibus.jpg" alt="圖、PC 匯流排的連接結構" /><p class="caption">圖、PC 匯流排的連接結構</p>
+</div>
+<h2 id="bus-總線-匯流排"><a href="#bus-總線-匯流排">BUS (總線, 匯流排)</a></h2>
+<p>由於線路多的話會很混亂，而且成本很高。舉例而言，假如有 n 個節點 (裝置)，所有節點之間都要互相直接相連，那麼就需要 n*(n-1)2/ 這個多組線路，這將會是個密密麻麻的災難。</p>
+<p>如果、我們讓所有的節點都連接到一組共用的線路，這套線路就稱為 BUS。只要大家都遵循一套固定的傳送規則，我們就可以用 BUS 作為所有人的通訊橋梁。</p>
+<p>以下是用 Verilog 宣告 BUS 線路的三種方法，分別是 wire, wand 與 wor。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">wire</span> [n<span class="dv">-1</span>:<span class="dv">0</span>] BUS;
+<span class="dt">wand</span> [n<span class="dv">-1</span>:<span class="dv">0</span>] andBUS;
+<span class="dt">wor</span>  [n<span class="dv">-1</span>:<span class="dv">0</span>] orBUS;</code></pre>
+<p>下列是採用 wire 方式宣告 BUS 的一個範例，當某個 seli 選擇線為 1 時，就會將對應的來源資料 sourcei 放到 BUS 上。而那些沒被選到的來源，由於是放高阻抗 Z ，所以會處於斷線的狀態。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="dt">wire</span> [n<span class="dv">-1</span>:<span class="dv">0</span>] BUS;
+<span class="dt">parameter</span> [n<span class="dv">-1</span>:<span class="dv">0</span>] <span class="kw">disable</span> = n<span class="bn">&#39;bZ</span>;
+
+<span class="kw">assign</span> BUS = sel1?source1:<span class="kw">disable</span>;
+<span class="kw">assign</span> BUS = sel2?source2:<span class="kw">disable</span>;
+...
+<span class="kw">assign</span> BUS = selk?sourcek:<span class="kw">disable</span>;</code></pre>
+<p>另外兩種宣告 BUS 的方法，也就是 wand 與 wor，與 wire 其實很像，差別只在於 wand 的 disable 是用 n'b1, 而 wor 的 disable 是用 n'b0。</p>
+<h2 id="同步匯流排-synchronous-bus"><a href="#同步匯流排-synchronous-bus">同步匯流排 (Synchronous BUS)</a></h2>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> master(<span class="dt">input</span> clock, w, <span class="dt">output</span> [<span class="dv">15</span>:<span class="dv">0</span>] address, <span class="dt">inout</span> [<span class="dv">15</span>:<span class="dv">0</span>] data);
+  <span class="dt">reg</span> [<span class="dv">15</span>:<span class="dv">0</span>] ar, dr;
+  <span class="kw">assign</span> address = ar;
+  <span class="kw">assign</span> data = (w)?dr : <span class="bn">16&#39;hzzzz</span>;
+
+  <span class="kw">always</span> @(*) <span class="kw">begin</span>
+    <span class="kw">if</span> (!w)
+      dr=<span class="bn">#1</span> data;
+  <span class="kw">end</span>  
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> rdevice(<span class="dt">input</span> clock, w, <span class="dt">input</span> [<span class="dv">15</span>:<span class="dv">0</span>] address, <span class="dt">output</span> [<span class="dv">15</span>:<span class="dv">0</span>] data);
+  <span class="dt">reg</span> [<span class="dv">15</span>:<span class="dv">0</span>] dr;
+
+  <span class="kw">assign</span> data=(!w)?dr:<span class="bn">16&#39;hZZZZ</span>;
+  
+  <span class="kw">always</span> @(clock <span class="dt">or</span> w <span class="dt">or</span> address) <span class="kw">begin</span>
+    <span class="kw">if</span> (!w &amp;&amp; address == <span class="bn">16&#39;hFFF0</span>)
+      dr = <span class="bn">#1</span> <span class="bn">16&#39;he3e3</span>;
+  <span class="kw">end</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> wdevice(<span class="dt">input</span> clock, w, <span class="dt">input</span> [<span class="dv">15</span>:<span class="dv">0</span>] address, <span class="dt">input</span> [<span class="dv">15</span>:<span class="dv">0</span>] data);
+  <span class="dt">reg</span> [<span class="dv">15</span>:<span class="dv">0</span>] dr;
+  
+  <span class="kw">always</span> @(clock <span class="dt">or</span> w <span class="dt">or</span> address) <span class="kw">begin</span>
+    <span class="kw">if</span> (w &amp;&amp; address == <span class="bn">16&#39;hFFF8</span>)
+      dr = <span class="bn">#1</span> data;
+  <span class="kw">end</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main;
+<span class="dt">reg</span> clock, w;
+<span class="dt">wire</span> [<span class="dv">15</span>:<span class="dv">0</span>] abus, dbus;
+
+master  m(clock, w, abus, dbus);
+rdevice rd(clock, w, abus, dbus);
+wdevice wd(clock, w, abus, dbus);
+<span class="kw">initial</span> <span class="kw">begin</span>
+  <span class="dt">$monitor</span>(<span class="st">&quot;%4dns abus=%x dbus=%x w=%x m.ar=%x m.dr=%x rd.dr=%x wd.dr=%x&quot;</span>, <span class="dt">$stime</span>, abus, dbus, w, m.ar, m.dr, rd.dr, wd.dr);
+  clock = <span class="dv">0</span>;
+  <span class="bn">#10</span>; m.ar=<span class="bn">16&#39;h0000</span>; w=<span class="dv">0</span>; 
+  <span class="bn">#50</span>; m.ar=<span class="bn">16&#39;hFFF0</span>; 
+  <span class="bn">#50</span>; m.ar=<span class="bn">16&#39;hFFF8</span>; m.dr=<span class="bn">16&#39;h71F0</span>; w=<span class="dv">1</span>;
+  <span class="bn">#300</span>; <span class="dt">$finish</span>;
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#5</span> clock=~clock; <span class="co">// 每隔 5ns 反相，時脈週期為 10ns</span>
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\Dropbox\Public\web\co\code&gt;iverilog syncbus.v -o syncbus
+
+D:\Dropbox\Public\web\co\code&gt;vvp syncbus
+   0ns abus=xxxx dbus=xxxx w=x m.ar=xxxx m.dr=xxxx rd.dr=xxxx wd.dr=xxxx
+  10ns abus=0000 dbus=xxxx w=0 m.ar=0000 m.dr=xxxx rd.dr=xxxx wd.dr=xxxx
+  60ns abus=fff0 dbus=xxxx w=0 m.ar=fff0 m.dr=xxxx rd.dr=xxxx wd.dr=xxxx
+  61ns abus=fff0 dbus=e3e3 w=0 m.ar=fff0 m.dr=xxxx rd.dr=e3e3 wd.dr=xxxx
+  62ns abus=fff0 dbus=e3e3 w=0 m.ar=fff0 m.dr=e3e3 rd.dr=e3e3 wd.dr=xxxx
+ 110ns abus=fff8 dbus=71f0 w=1 m.ar=fff8 m.dr=71f0 rd.dr=e3e3 wd.dr=xxxx
+ 111ns abus=fff8 dbus=71f0 w=1 m.ar=fff8 m.dr=71f0 rd.dr=e3e3 wd.dr=e3e3
+ 116ns abus=fff8 dbus=71f0 w=1 m.ar=fff8 m.dr=71f0 rd.dr=e3e3 wd.dr=71f0</code></pre>
+<div class="figure">
+<img src="../img/syncbus_wave.jpg" alt="圖、上述同步 BUS 的波形圖" /><p class="caption">圖、上述同步 BUS 的波形圖</p>
+</div>
+<h2 id="異步匯流排-asynchronous-bus"><a href="#異步匯流排-asynchronous-bus">異步匯流排 (Asynchronous BUS)</a></h2>
+<p>異步匯流排是指沒有共同 Clock 訊號的匯流排，因此無法依賴 Clock 進行同步，所以必須依靠「主控就緒」 (Master Ready)，「從動就緒」(Slave Ready) 等訊號，來進行握手 (Handshaking) 的協調程序。</p>
+<h2 id="匯流排仲裁-bus-arbitery"><a href="#匯流排仲裁-bus-arbitery">匯流排仲裁 (BUS arbitery)</a></h2>
+<p>當有很多個主控裝置都有可能請求使用 BUS 的時候，就必須要加入一個仲裁機制，通常是由一個仲裁者 (arbiter) 進行仲裁。</p>
+<div class="figure">
+<img src="../img/arbiter.jpg" />
+</div>
+<h2 id="循序與平行輸出入-serial-vs.-parallel"><a href="#循序與平行輸出入-serial-vs.-parallel">循序與平行輸出入 (Serial vs. Parallel)</a></h2>
+<h2 id="常見的輸出入協定"><a href="#常見的輸出入協定">常見的輸出入協定</a></h2>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

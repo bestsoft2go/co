@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#控制單元">控制單元</a><ul>
+<li><a href="#簡介">簡介</a></li>
+<li><a href="#流程式設計">流程式設計</a></li>
+<li><a href="#區塊式設計">區塊式設計</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="控制單元"><a href="#控制單元">控制單元</a></h1>
+<h2 id="簡介"><a href="#簡介">簡介</a></h2>
+<p>如果您曾經用硬接線的方式設計過 CPU，那就會發現「控制單元」主要就是一堆「開關」與「多工器」的接線。</p>
+<p>開關可以用來控制某些資料是否要流過，而多工器則可以從很多組輸入資料中選擇一組輸出，以下是一個四選一多工器的方塊圖。</p>
+<div class="figure">
+<img src="../img/mux.png" alt="圖、4 選 1 多工器" /><p class="caption">圖、4 選 1 多工器</p>
+</div>
+<p>4 選 1 多工器的內部電路結構如下：</p>
+<div class="figure">
+<img src="../img/mux4to1.png" alt="圖、4 選 1 多工器的內部電路" /><p class="caption">圖、4 選 1 多工器的內部電路</p>
+</div>
+<p>接著、就讓我們來看一個完整的 Verilog 的 4 選 1 的多工器程式，由於 Verilog 支援像 Case 這樣的高階語法，因此在實作時 可以不需要採用細部的接線方式，只要使用 case 語句就可以輕易完成多工器的設計。</p>
+<p>檔案：<a href="https://dl.dropboxusercontent.com/u/101584453/pmag/201309/code/mux.v">mux4.v</a></p>
+<pre class="sourceCode Verilog"><code class="sourceCode verilog"><span class="kw">module</span> mux4(<span class="dt">input</span>[<span class="dv">1</span>:<span class="dv">0</span>]  select, <span class="dt">input</span>[<span class="dv">3</span>:<span class="dv">0</span>] d, <span class="dt">output</span> <span class="dt">reg</span> q );
+<span class="kw">always</span> @( select <span class="dt">or</span> d )
+<span class="kw">begin</span>
+   <span class="kw">case</span>( select )
+       <span class="dv">0</span> : q = d[<span class="dv">0</span>];
+       <span class="dv">1</span> : q = d[<span class="dv">1</span>];
+       <span class="dv">2</span> : q = d[<span class="dv">2</span>];
+       <span class="dv">3</span> : q = d[<span class="dv">3</span>];
+   <span class="kw">endcase</span>
+<span class="kw">end</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main;
+<span class="dt">reg</span> [<span class="dv">3</span>:<span class="dv">0</span>] d;
+<span class="dt">reg</span> [<span class="dv">1</span>:<span class="dv">0</span>] s;
+<span class="dt">wire</span> q;
+
+mux4 DUT (s, d, q);
+
+<span class="kw">initial</span>
+<span class="kw">begin</span>
+  s = <span class="dv">0</span>;
+  d = <span class="bn">4&#39;b0110</span>;
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#50</span> <span class="kw">begin</span>
+  s=s<span class="dv">+1</span>;
+  <span class="dt">$monitor</span>(<span class="st">&quot;%4dns monitor: s=%d d=%d q=%d&quot;</span>, <span class="dt">$stime</span>, s, d, q);
+<span class="kw">end</span>
+
+<span class="kw">initial</span> <span class="bn">#1000</span> <span class="dt">$finish</span>;
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\ccc101\icarus&gt;iverilog mux4.v -o mux4
+
+D:\ccc101\icarus&gt;vvp mux4
+  50ns monitor: s=1 d= 6 q=1
+ 100ns monitor: s=2 d= 6 q=1
+ 150ns monitor: s=3 d= 6 q=0
+ 200ns monitor: s=0 d= 6 q=0
+ 250ns monitor: s=1 d= 6 q=1
+ 300ns monitor: s=2 d= 6 q=1
+ 350ns monitor: s=3 d= 6 q=0
+ 400ns monitor: s=0 d= 6 q=0
+ 450ns monitor: s=1 d= 6 q=1
+ 500ns monitor: s=2 d= 6 q=1
+ 550ns monitor: s=3 d= 6 q=0
+ 600ns monitor: s=0 d= 6 q=0
+ 650ns monitor: s=1 d= 6 q=1
+ 700ns monitor: s=2 d= 6 q=1
+ 750ns monitor: s=3 d= 6 q=0
+ 800ns monitor: s=0 d= 6 q=0
+ 850ns monitor: s=1 d= 6 q=1
+ 900ns monitor: s=2 d= 6 q=1
+ 950ns monitor: s=3 d= 6 q=0
+1000ns monitor: s=0 d= 6 q=0</code></pre>
+<p>您可以看到在上述範例中，輸入資料 6 的二進位是 0110，如下所示：</p>
+<pre><code>       位置 s  3 2 1 0
+       位元 d  0 1 1 0</code></pre>
+<p>因此當 s=0 時會輸出 0, s=1 時會輸出 1, s=2 時會輸出 1, s=3 時會輸出 0，這就是上述輸出結果的意義。</p>
+<p>但是、這種採用多工器硬的接線方式，必須搭配區塊式的設計，才能建構出 CPU，但是這種方式較為困難，因此 我們留待後續章節再來介紹。為了簡單起見，我們會先採用流程式的設計方法。</p>
+<h2 id="流程式設計"><a href="#流程式設計">流程式設計</a></h2>
+<p>傳統上、當您設計出「ALU、暫存器」等基本元件之後，就可以設計控制單元，去控制這些「基本元件」，形成一顆 CPU。</p>
+<p>但是、在 Verilog 當中， 「+, -, *, /, 暫存器」等都是基本語法，因此整個 CPU 的設計其實就是一個控制單元的設計而已，我們只要在適當的時候呼叫 「+, -, *, /」運算與「暫存器讀取寫入」功能，就能設計完一顆 CPU 了。</p>
+<p>換句話說，只要在 Verilog 中設計出控制單元，基本上就已經設計完成整顆 CPU 了，因為「+, -, *, /, 暫存器」等元件都已經內建了。</p>
+<p>以下是我們用流程法設計 mcu0 微處理器的重要程式片段，您可以看到在這種作法上，整個處理器就僅僅是一個「控制單元」，而這個「控制單元」的責任就是根據「擷取、解碼、執行」的流程，操控暫存器的流向與運算。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> cpu(<span class="dt">input</span> clock);
+  ...
+  <span class="kw">always</span> @(<span class="kw">posedge</span> clock) <span class="kw">begin</span> <span class="co">// 在 clock 時脈的正邊緣時觸發</span>
+      IR = {m[PC], m[PC<span class="dv">+1</span>]};  <span class="co">// 指令擷取階段：IR=m[PC], 2 個 Byte 的記憶體</span>
+      pc0= PC;                <span class="co">// 儲存舊的 PC 值在 pc0 中。</span>
+      PC = PC<span class="dv">+2</span>;              <span class="co">// 擷取完成，PC 前進到下一個指令位址</span>
+      <span class="kw">case</span> (<span class="ot">`OP</span>)              <span class="co">// 解碼、根據 OP 執行動作</span>
+        <span class="dv">LD:</span> A = <span class="ot">`M</span>;           <span class="co">// LD C</span>
+        <span class="dv">ST:</span> <span class="ot">`M</span> = A;           <span class="co">// ST C</span>
+        <span class="dv">CMP:</span> <span class="kw">begin</span> <span class="ot">`N</span>=(A &lt; <span class="ot">`M</span>); <span class="ot">`Z</span>=(A==<span class="ot">`M</span>); <span class="kw">end</span> <span class="co">// CMP C</span>
+        <span class="dv">ADD:</span> A = A + <span class="ot">`M</span>;      <span class="co">// ADD C</span>
+        <span class="dv">JMP:</span> PC = <span class="ot">`C</span>;         <span class="co">// JMP C</span>
+        <span class="dv">JEQ:</span> <span class="kw">if</span> (<span class="ot">`Z</span>) PC=<span class="ot">`C</span>;   <span class="co">// JEQ C</span>
+        ...
+      <span class="kw">endcase</span>
+      <span class="co">// 印出 PC, IR, SW, A 等暫存器值以供觀察</span>
+      <span class="dt">$display</span>(<span class="st">&quot;%4dns PC=%x IR=%x, SW=%x, A=%d&quot;</span>, <span class="dt">$stime</span>, pc0, IR, SW, A); 
+  <span class="kw">end</span>
+<span class="kw">endmodule</span></code></pre>
+<h2 id="區塊式設計"><a href="#區塊式設計">區塊式設計</a></h2>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> mcu(<span class="dt">input</span> clock);
+  ...
+  register#(.W(<span class="dv">12</span>)) PC(clock, <span class="dv">1</span>, pci, pco);
+  adder#(.W(<span class="dv">12</span>)) adder0(<span class="dv">2</span>, pco, pcnext);
+  memory mem(mw, <span class="ot">`C</span>, ao, pco, ir, <span class="ot">`C</span>, mo);
+  register#(.W(<span class="dv">16</span>)) A(~clock, aw, aluout, ao);
+  register#(.W(<span class="dv">16</span>)) SW(~clock, sww, aluout, swo);
+  alu alu0(aluop, mo, ao, aluout);
+  mux#(.W(<span class="dv">12</span>)) muxpc(pcmux, pcnext, <span class="ot">`C</span>, pci);
+  control cu(<span class="ot">`OP</span>, <span class="ot">`Z</span>, mw, aw, pcmux, sww, aluop);
+  ...
+<span class="kw">endmodule</span></code></pre>
+<h3 id="以流程法設計控制單元"><a href="#以流程法設計控制單元">以流程法設計控制單元</a></h3>
+<p>然而、當指令愈來愈多，系統愈來愈複雜時，區塊式的設計方法就會愈來愈困難，此時有兩種解決方式，一種是採用流程式的設計法來撰寫控制單元，操控各種「開關與多工器」。這種設計方法混合了「區塊式與流程式」的設計方法，算是一種折衷性的方法。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> control(<span class="dt">input</span> [<span class="dv">3</span>:<span class="dv">0</span>] op, <span class="dt">input</span> z, <span class="dt">output</span> mw, aw, pcmux, sww, <span class="dt">output</span> [<span class="dv">3</span>:<span class="dv">0</span>] aluop);
+  <span class="dt">reg</span> mw, aw, pcmux, sww;
+  <span class="dt">reg</span> [<span class="dv">3</span>:<span class="dv">0</span>] aluop;
+  <span class="kw">always</span> @(op) <span class="kw">begin</span>
+    mw = <span class="dv">0</span>;
+    aw = <span class="dv">0</span>;
+    sww = <span class="dv">0</span>;
+    pcmux = <span class="dv">0</span>;
+    aluop = alu0.ZERO;
+    <span class="kw">case</span> (op)
+      mcu0.LD: <span class="kw">begin</span> aw=<span class="dv">1</span>; aluop=alu0.APASS; <span class="kw">end</span>     <span class="co">// LD C</span>
+      mcu0.ST: mw=<span class="dv">1</span>;                                 <span class="co">// ST C</span>
+      mcu0.JMP: pcmux=<span class="dv">1</span>;                             <span class="co">// JMP C</span>
+      mcu0.JEQ: <span class="kw">if</span> (<span class="ot">`Z</span>) pcmux=<span class="dv">1</span>;                     <span class="co">// JEQ C</span>
+      mcu0.CMP: <span class="kw">begin</span> sww=<span class="dv">1</span>; aluop = alu0.CMP; <span class="kw">end</span>   <span class="co">// CMP C</span>
+      mcu0.ADD: <span class="kw">begin</span> aw=<span class="dv">1</span>; aluop=alu0.ADD; <span class="kw">end</span>      <span class="co">// ADD C</span>
+    <span class="kw">endcase</span>
+  <span class="kw">end</span>  
+<span class="kw">endmodule</span></code></pre>
+<h3 id="以區塊法設計控制單元"><a href="#以區塊法設計控制單元">以區塊法設計控制單元</a></h3>
+<p>當然、我們也可以將上述的控制訊號硬是用 and, or, not 等方式寫下來，這樣就能將整個設計完全「區塊化」，而去掉「流程式」的寫法了。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> control(<span class="dt">input</span> [<span class="dv">3</span>:<span class="dv">0</span>] op, <span class="dt">input</span> z, <span class="dt">output</span> mw, aw, pcmux, sww, <span class="dt">output</span> [<span class="dv">3</span>:<span class="dv">0</span>] aluop);
+  <span class="kw">assign</span> mw=(op==mcu0.ST);
+  <span class="kw">assign</span> aw=(op==mcu0.LD || op==mcu0.ADD);
+  <span class="kw">assign</span> sww=(op==mcu0.CMP);
+  <span class="kw">assign</span> pcmux=(op==mcu0.JMP || (op==mcu0.JEQ &amp;&amp; z));
+  <span class="kw">assign</span> aluop=(op==mcu0.LD)?alu0.APASS:(op==mcu0.CMP)?alu0.CMP:(op==mcu0.ADD)?alu0.ADD:alu0.ZERO;
+<span class="kw">endmodule</span></code></pre>
+<h3 id="以微指令設計控制單元"><a href="#以微指令設計控制單元">以微指令設計控制單元</a></h3>
+<p>另一種可以克服區塊式複雜度問題的方法，是採用「微指令」(microcode or microprogram) 的設計方法，這種方法將指令的「擷取 (fetch)、解碼 (decode)、執行 (execute) 與寫回 (write-back)」等分成 T1, T2, T3, T4, ... 等子步驟，然後用一個微型計數器 mPC 控制這些子步驟的執行，如下圖所示。</p>
+<div class="figure">
+<img src="../img/microcode.jpg" />
+</div>
+<p>由於 T1, T2, T3, T4 代表「擷取 (fetch)、解碼 (decode)、執行 (execute) 與寫回 (write-back)」，每個步驟各佔用一個 Clock，於是一個指令需要四個 Clock 才能完成，因此我們可以用以下方法將各個「開關與多工器」的控制編為一個表格。</p>
+<pre><code>       C1 C2 C3 .... Ck
+T1
+T2
+T3
+T4</code></pre>
+<p>這樣就可以很有系統的運用「區塊建構法」將控制單元也區塊化了，於是我們就不需要採用「流程式的寫法」，也能透過「按表操課」的方法完成「處理器的區塊式建構」了。</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

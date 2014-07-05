@@ -1,0 +1,316 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#乘法與除法">乘法與除法</a></li>
+</ul>
+</div>
+<h2 id="乘法與除法"><a href="#乘法與除法">乘法與除法</a></h2>
+<h3 id="for-迴圈的實作方法"><a href="#for-迴圈的實作方法">for 迴圈的實作方法</a></h3>
+<p>最簡單的乘法器是移位乘法器，這種乘法器基本上只用了一個加法器和一個移位器所組成， 電路上而言相當簡單，但缺點是執行速度不快，以下是一個 32 位元的移位乘法器之程式碼。</p>
+<p>參考：http://www.edaboard.com/thread235191.html</p>
+<p>檔案：shift_mult.v</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> multiplier(<span class="dt">output</span> <span class="dt">reg</span> [<span class="dv">63</span>:<span class="dv">0</span>] z, <span class="dt">input</span> [<span class="dv">31</span>:<span class="dv">0</span>] x, y); 
+<span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] a;
+<span class="dt">integer</span> i; 
+
+<span class="kw">always</span> @(x , y)
+<span class="kw">begin</span> 
+  a=x;
+  z=<span class="dv">0</span>; <span class="co">// 初始化為 0</span>
+  <span class="kw">for</span>(i=<span class="dv">0</span>;i&lt;<span class="dv">31</span>;i=i<span class="dv">+1</span>) <span class="kw">begin</span>
+    <span class="kw">if</span> (y[i])
+      z = z + a; <span class="co">// 請注意，這是 block assignment =，所以會造成延遲，長度越長延遲越久。</span>
+    a=a &lt;&lt; <span class="dv">1</span>;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main; 
+<span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] a, b; 
+<span class="dt">wire</span> [<span class="dv">63</span>:<span class="dv">0</span>] c; 
+
+multiplier m(c, a, b); 
+
+<span class="kw">initial</span> <span class="kw">begin</span> 
+  a = <span class="dv">17</span>;
+  b = <span class="dv">7</span>; 
+  <span class="bn">#10</span>;
+  <span class="dt">$display</span>(<span class="st">&quot;a=%d b=%d c=%d&quot;</span>, a, b, c); 
+<span class="kw">end</span> 
+
+<span class="kw">endmodule</span> </code></pre>
+<p>其編譯執行結果如下：</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o mul32a mul32a.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp mul32a
+a=        17 b=         7 c=                 119</code></pre>
+<p>但是、以上的這個程式，採用了 for 迴圈，而且使用 = 這種阻隔式的方式，應該會相當耗費電路資源， 筆者認為上述電路應該會用到 32 組 32 位元的加法器，這樣實在是難以接受的一種情況，所以我們接 下來將採用只有一組加法器，然後用多個時脈的方式來設計乘法器。</p>
+<p>參考：http://www.edaboard.com/thread86772.html</p>
+<ol style="list-style-type: decimal">
+<li>for loop verilog synthesis</li>
+</ol>
+<blockquote>
+<p>It is synthesizable but it is always advised that for loops are not to be used in RTL coding. This is because it consumes lot of resources (like area etc.etc) . However u can use it in behavioral coding becuse we do not synthesize behavioral codes.</p>
+</blockquote>
+<ol start="2" style="list-style-type: decimal">
+<li>verilog for loop syntax</li>
+</ol>
+<blockquote>
+<p>In verilog,synthesizable of for loop and while loop depends on which tools you are using . But it is better dont use it in RTL because it reflects replica of hardware.</p>
+</blockquote>
+<h3 id="個時脈的實作方法"><a href="#個時脈的實作方法">32 個時脈的實作方法</a></h3>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> multiplier(<span class="dt">output</span> <span class="dt">reg</span> [<span class="dv">63</span>:<span class="dv">0</span>] z, <span class="dt">output</span> ready, <span class="dt">input</span> [<span class="dv">31</span>:<span class="dv">0</span>] x, y, <span class="dt">input</span> start, clk); 
+   <span class="dt">reg</span> [<span class="dv">5</span>:<span class="dv">0</span>] bit; 
+   <span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] a;
+   
+   <span class="dt">wire</span> ready = !bit;
+   
+   <span class="kw">initial</span> bit = <span class="dv">0</span>;
+
+   <span class="kw">always</span> @( <span class="kw">posedge</span> clk ) <span class="kw">begin</span>
+     <span class="kw">if</span>( ready &amp;&amp; start ) <span class="kw">begin</span>
+        bit = <span class="dv">32</span>;
+        z = <span class="dv">0</span>;
+        a = x;
+     <span class="kw">end</span> <span class="kw">else</span> <span class="kw">begin</span>
+        bit = bit - <span class="dv">1</span>;
+        z = z &lt;&lt; <span class="dv">1</span>;
+        <span class="kw">if</span> (y[bit])
+          z = z + a;
+     <span class="kw">end</span>
+      ![](../timg/f227758f3c73.jpg) stime, x, y, z, ready, bit);
+   <span class="kw">end</span> 
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main; 
+<span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] a, b; 
+<span class="dt">wire</span> [<span class="dv">63</span>:<span class="dv">0</span>] c; 
+<span class="dt">reg</span> clk, start;
+<span class="dt">wire</span> ready;
+
+multiplier m(c, ready, a, b, start, clk); 
+
+<span class="kw">initial</span> <span class="kw">begin</span> 
+  a = <span class="dv">17</span>;
+  b = <span class="dv">7</span>; 
+  start = <span class="dv">1</span>;
+  clk = <span class="dv">0</span>;
+  <span class="bn">#200</span>;
+  start = <span class="dv">0</span>;
+  <span class="bn">#200</span>;
+  <span class="dt">$finish</span>;
+<span class="kw">end</span> 
+
+<span class="kw">always</span> <span class="bn">#5</span> clk = !clk;
+<span class="co">// always @(posedge clk)  ![](../timg/cef23b92b13b.jpg) stime, a, b, c, ready);</span>
+
+<span class="kw">endmodule</span> </code></pre>
+<p>執行結果</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o mul32b mul32b.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp mul32b
+         5ns : x=        17 y=         7 z=                   0 ready=0 bit=32
+        15ns : x=        17 y=         7 z=                   0 ready=0 bit=31
+        25ns : x=        17 y=         7 z=                   0 ready=0 bit=30
+        35ns : x=        17 y=         7 z=                   0 ready=0 bit=29
+        45ns : x=        17 y=         7 z=                   0 ready=0 bit=28
+        55ns : x=        17 y=         7 z=                   0 ready=0 bit=27
+        65ns : x=        17 y=         7 z=                   0 ready=0 bit=26
+        75ns : x=        17 y=         7 z=                   0 ready=0 bit=25
+        85ns : x=        17 y=         7 z=                   0 ready=0 bit=24
+        95ns : x=        17 y=         7 z=                   0 ready=0 bit=23
+       105ns : x=        17 y=         7 z=                   0 ready=0 bit=22
+       115ns : x=        17 y=         7 z=                   0 ready=0 bit=21
+       125ns : x=        17 y=         7 z=                   0 ready=0 bit=20
+       135ns : x=        17 y=         7 z=                   0 ready=0 bit=19
+       145ns : x=        17 y=         7 z=                   0 ready=0 bit=18
+       155ns : x=        17 y=         7 z=                   0 ready=0 bit=17
+       165ns : x=        17 y=         7 z=                   0 ready=0 bit=16
+       175ns : x=        17 y=         7 z=                   0 ready=0 bit=15
+       185ns : x=        17 y=         7 z=                   0 ready=0 bit=14
+       195ns : x=        17 y=         7 z=                   0 ready=0 bit=13
+       205ns : x=        17 y=         7 z=                   0 ready=0 bit=12
+       215ns : x=        17 y=         7 z=                   0 ready=0 bit=11
+       225ns : x=        17 y=         7 z=                   0 ready=0 bit=10
+       235ns : x=        17 y=         7 z=                   0 ready=0 bit= 9
+       245ns : x=        17 y=         7 z=                   0 ready=0 bit= 8
+       255ns : x=        17 y=         7 z=                   0 ready=0 bit= 7
+       265ns : x=        17 y=         7 z=                   0 ready=0 bit= 6
+       275ns : x=        17 y=         7 z=                   0 ready=0 bit= 5
+       285ns : x=        17 y=         7 z=                   0 ready=0 bit= 4
+       295ns : x=        17 y=         7 z=                   0 ready=0 bit= 3
+       305ns : x=        17 y=         7 z=                  17 ready=0 bit= 2
+       315ns : x=        17 y=         7 z=                  51 ready=0 bit= 1
+       325ns : x=        17 y=         7 z=                 119 ready=1 bit= 0
+       335ns : x=        17 y=         7 z=                 238 ready=0 bit=63
+       345ns : x=        17 y=         7 z=                 476 ready=0 bit=62
+       355ns : x=        17 y=         7 z=                 952 ready=0 bit=61
+       365ns : x=        17 y=         7 z=                1904 ready=0 bit=60
+       375ns : x=        17 y=         7 z=                3808 ready=0 bit=59</code></pre>
+<h3 id="除法器"><a href="#除法器">除法器</a></h3>
+<p>檔案： div32.v</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="co">// 參考：http://www.ece.lsu.edu/ee3755/2002/l07.html</span>
+<span class="co">// 參考：http://answers.google.com/answers/threadview/id/109219.html</span>
+<span class="co">// a/b = q ; a%b = r;</span>
+<span class="kw">module</span> divider(<span class="dt">output</span> <span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] q, <span class="dt">output</span> [<span class="dv">31</span>:<span class="dv">0</span>] r, <span class="dt">output</span> ready, <span class="dt">input</span> [<span class="dv">31</span>:<span class="dv">0</span>]  a,b, <span class="dt">input</span> start, clk);
+   <span class="dt">reg</span> [<span class="dv">63</span>:<span class="dv">0</span>]    ta, tb, diff;
+   <span class="dt">reg</span> [<span class="dv">5</span>:<span class="dv">0</span>]     bit; 
+   <span class="dt">wire</span>          ready = !bit;
+   
+   <span class="kw">initial</span> bit = <span class="dv">0</span>;
+
+   <span class="kw">assign</span> r = ta[<span class="dv">31</span>:<span class="dv">0</span>];
+   
+   <span class="kw">always</span> @( <span class="kw">posedge</span> clk ) 
+     <span class="kw">if</span>( ready &amp;&amp; start ) <span class="kw">begin</span>
+        bit = <span class="dv">32</span>;
+        q = <span class="dv">0</span>;
+        ta = {<span class="bn">32&#39;d0</span>, a};
+        tb = {<span class="bn">1&#39;b0</span>, b,<span class="bn">31&#39;d0</span>};
+     <span class="kw">end</span> <span class="kw">else</span> <span class="kw">begin</span>
+        diff = ta - tb;
+        q = q &lt;&lt; <span class="dv">1</span>;
+        <span class="kw">if</span>( !diff[<span class="dv">63</span>] ) <span class="kw">begin</span>
+           ta = diff;
+           q[<span class="dv">0</span>] = <span class="bn">1&#39;d1</span>;
+        <span class="kw">end</span>
+        tb = tb &gt;&gt; <span class="dv">1</span>;
+        bit = bit - <span class="dv">1</span>;
+     <span class="kw">end</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main;
+<span class="dt">reg</span> clk, start;
+<span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] a, b;
+<span class="dt">wire</span> [<span class="dv">31</span>:<span class="dv">0</span>] q, r;
+<span class="dt">wire</span> ready;
+
+divider div(q,r,ready,a,b,start,clk);
+
+<span class="kw">initial</span> <span class="kw">begin</span>
+  clk = <span class="dv">0</span>;
+  a = <span class="dv">90</span>; b = <span class="dv">13</span>; start = <span class="dv">1</span>; 
+  <span class="bn">#200</span>;
+  start = <span class="dv">0</span>;
+  <span class="bn">#200</span>;
+  <span class="dt">$finish</span>;
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#5</span> clk = !clk;
+<span class="kw">always</span> @(<span class="kw">posedge</span> clk)  ![](../timg/f777313541ae.jpg) stime, a, b, q, r, ready);
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o div32 div32.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp div32
+         5ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        15ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        25ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        35ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        45ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        55ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        65ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        75ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        85ns : a=        90 b=        13 q=         0 r=        90 ready=0
+        95ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       105ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       115ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       125ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       135ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       145ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       155ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       165ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       175ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       185ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       195ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       205ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       215ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       225ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       235ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       245ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       255ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       265ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       275ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       285ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       295ns : a=        90 b=        13 q=         0 r=        90 ready=0
+       305ns : a=        90 b=        13 q=         1 r=        38 ready=0
+       315ns : a=        90 b=        13 q=         3 r=        12 ready=0
+       325ns : a=        90 b=        13 q=         6 r=        12 ready=1
+       335ns : a=        90 b=        13 q=        13 r=         6 ready=0
+       345ns : a=        90 b=        13 q=        27 r=         3 ready=0
+       355ns : a=        90 b=        13 q=        55 r=         2 ready=0
+       365ns : a=        90 b=        13 q=       111 r=         2 ready=0
+       375ns : a=        90 b=        13 q=       223 r=         2 ready=0
+       385ns : a=        90 b=        13 q=       447 r=         2 ready=0
+       395ns : a=        90 b=        13 q=       895 r=         2 ready=0</code></pre>
+<h3 id="booth-乘法器"><a href="#booth-乘法器">Booth 乘法器</a></h3>
+<ul>
+<li>參考：<a href="http://zh.wikipedia.org/wiki/%E5%B8%83%E6%96%AF%E4%B9%98%E6%B3%95%E7%AE%97%E6%B3%95">維基百科：布斯乘法演算法</a></li>
+</ul>
+<p>以下範例來自維基百科</p>
+<h4 id="booth-算法範例"><a href="#booth-算法範例">Booth 算法範例：</a></h4>
+<p>考慮一個由若干個 0 包圍著若干個 1 的正的[[二進制]]乘數，比如 00111110，積可以表達為：</p>
+<div class="figure">
+<img src="../timg/c50047a6fb34.jpg" />
+</div>
+<p>其中，M 代表被乘數。變形為下式可以使運算次數可以減為兩次：</p>
+<div class="figure">
+<img src="../timg/0bbd0af78615.jpg" />
+</div>
+<p>事實上，任何二進制數中連續的 1 可以被分解為兩個二進制數之差：</p>
+<p><img src="../img/BoothExp.jpg" /> .</p>
+<!-- ![](../timg/e57d19c4ce90.jpg) -->
+
+<p>因此，我們可以用更簡單的運算來替換原數中連續為 1 的數字的乘法，通過加上乘數，對部分積進行移位運算， 最後再將之從乘數中減去。它利用了我們在針對為零的位做乘法時，不需要做其他運算，只需移位這一特點， 這很像我們在做和 99 的乘法時利用 99=100-1 這一性質。</p>
+<p>這種模式可以擴展應用於任何一串數字中連續為 1 的部分（包括只有一個 1 的情況）。那麼，</p>
+<div class="figure">
+<img src="../timg/31f528e10ca3.jpg" />
+</div>
+<div class="figure">
+<img src="../timg/cafc15c58172.jpg" />
+</div>
+<p>布斯算法遵從這種模式，它在遇到一串數字中的第一組從 0 到 1 的變化時（即遇到 01 時）執行加法， 在遇到這一串連續 1 的尾部時（即遇到 10 時）執行減法。這在乘數為負時同樣有效。當乘數中的連續 1 比較多時（形成比較長的 1 串時），布斯算法較一般的乘法算法執行的加減法運算少。</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

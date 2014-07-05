@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#快取記憶體-cache">快取記憶體 (Cache)</a></li>
+</ul>
+</div>
+<h2 id="快取記憶體-cache"><a href="#快取記憶體-cache">快取記憶體 (Cache)</a></h2>
+<p>傳統的處理器通常採用「單一匯流排馮紐曼架構」設計，這種架構非常簡單且易懂，如下圖所示：</p>
+<div class="figure">
+<img src="../img/voneumann1bus.jpg" alt="圖、單一匯流排的馮紐曼架構" /><p class="caption">圖、單一匯流排的馮紐曼架構</p>
+</div>
+<p>但是、以當今的技術，上圖中的記憶體通常採用 DRAM 為主。</p>
+<p>這是因為快速的靜態記憶體 (SRAM) 仍然相當昂貴，而速度慢上數十倍的動態記憶體 (DRAM) 則相對便宜，因此電腦的主記憶體通常仍然採用 DRAM 為主。</p>
+<p>如果要讓 CPU 的執行速度更快，就不能讓 CPU 遷就於 DRAM 的速度跟著變慢，此時我們可以在 CPU 內部加入一個快取記憶體 (cache)，讓位於 DRAM 中常用到的指令與資料放入快取當中，如下圖所示：</p>
+<div class="figure">
+<img src="../img/voneumann1cache.jpg" alt="圖、單一匯流排的馮紐曼架構" /><p class="caption">圖、單一匯流排的馮紐曼架構</p>
+</div>
+<p>當 CPU 想要執行一個指令時，如果該指令已經在 cache 當中，就不需要讀取 DRAM，因此「指令擷取」階段就可以快上數十倍。</p>
+<p>當然、如果該指令需要存取資料，而該資料已經在 cache 當中了，那麼 CPU 就不需要從 DRAM 中讀取資料，因此「資料讀取」階段就可以快上數十倍。</p>
+<p>當需要寫入資料時，如果暫時先寫到 cache 當中，而不是直接寫回 DRAM，那麼「資料寫入」的動作就可以快上數十倍。</p>
+<p>當然、上述的美好情況不會永遠都成立，假如想存取的指令或資料不存在 cache 當中，那麼就必須從 DRAM 讀取資料，這時 CPU 的速度就會被打回原形，變成與 DRAM 的速度一樣。</p>
+<p>而且、當資料被放入 cache 之後，由於 DRAM 當中還有一份同樣的資料，要又如何才能快速的查出資料是否在 cache 當中，就是一個不容易的問題了。這個問題的解決，必須依靠某種「記憶體位址的標籤」 (tag)，透過這種標籤我們可以查出某個位址的內容到底是在 cache 當中的那一格。</p>
+<p>而標籤的設計方法，大致可分為「直接映射」 (direct-mapping)，「關連映射」(associate-mapping)與「組關連映射」 (set associative-mapping) 等幾種方法。其中最常採用的是後者。</p>
+<p>對這些 cache 作法的細節有興趣的讀者，可以參考下列文件。</p>
+<ul>
+<li><a href="http://zh.wikipedia.org/wiki/CPU%E7%BC%93%E5%AD%98">維基百科：CPU快取</a></li>
+</ul>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

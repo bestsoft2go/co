@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#浮點數運算">浮點數運算</a></li>
+</ul>
+</div>
+<h2 id="浮點數運算"><a href="#浮點數運算">浮點數運算</a></h2>
+<h3 id="浮點運算單元-falu"><a href="#浮點運算單元-falu">浮點運算單元 FALU</a></h3>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="co">// 輸入 a, b 後會執行 op 所指定的運算，然後將結果放在暫存器 y 當中</span>
+<span class="kw">module</span> falu(<span class="dt">input</span> [<span class="dv">63</span>:<span class="dv">0</span>] ia, <span class="dt">input</span> [<span class="dv">63</span>:<span class="dv">0</span>] ib, <span class="dt">input</span> [<span class="dv">1</span>:<span class="dv">0</span>] op, <span class="dt">output</span> <span class="dt">reg</span> [<span class="dv">63</span>:<span class="dv">0</span>] oy);
+<span class="dt">real</span> a, b, y;
+
+<span class="kw">always</span> @(a <span class="dt">or</span> b <span class="dt">or</span> op) <span class="kw">begin</span>
+  a = <span class="dt">$bitstoreal</span>(ia);
+  b = <span class="dt">$bitstoreal</span>(ib); 
+  <span class="kw">case</span> (op)
+    <span class="bn">2&#39;b00</span>: y = a + b;
+    <span class="bn">2&#39;b01</span>: y = a - b;
+    <span class="bn">2&#39;b10</span>: y = a * b;
+    <span class="bn">2&#39;b11</span>: y = a / b;
+  <span class="kw">endcase</span>
+  <span class="dt">$display</span>(<span class="st">&quot;falu32:op=%d a=%f b=%f y=%f&quot;</span>, op, a, b, y);
+  oy = <span class="dt">$realtobits</span>(y);
+<span class="kw">end</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main;                <span class="co">// 測試程式開始</span>
+  <span class="dt">reg</span>  [<span class="dv">63</span>:<span class="dv">0</span>] a64, b64;
+  <span class="dt">wire</span> [<span class="dv">63</span>:<span class="dv">0</span>] y64;
+  <span class="dt">reg</span>  [<span class="dv">1</span>:<span class="dv">0</span>] op;
+  <span class="dt">real</span> a, b;
+
+  falu falu1(a64, b64, op, y64);     <span class="co">// 建立一個 alu 單元，名稱為 alu1</span>
+
+  <span class="kw">initial</span> <span class="kw">begin</span>              <span class="co">// 測試程式的初始化動作</span>
+    a = <span class="fl">3.14159</span>;  a64 = <span class="dt">$realtobits</span>(a);
+    b = <span class="fl">2.71818</span>;  b64 = <span class="dt">$realtobits</span>(b);
+    op = <span class="dv">0</span>;
+  <span class="kw">end</span>
+
+  <span class="kw">always</span> <span class="bn">#50</span> <span class="kw">begin</span>           <span class="co">// 每個 50 奈秒就作下列動作</span>
+    op = op + <span class="dv">1</span>;             <span class="co">// 讓 op 的值加 1</span>
+  <span class="kw">end</span>
+
+  <span class="kw">initial</span> <span class="bn">#1000</span> <span class="dt">$finish</span>;      <span class="co">// 時間到 1000 奈秒就結束</span>
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o flu64 flu64.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp flu64
+falu32:op=0 a=3.141590 b=2.718180 y=5.859770
+falu32:op=1 a=3.141590 b=2.718180 y=0.423410
+falu32:op=2 a=3.141590 b=2.718180 y=8.539407
+falu32:op=3 a=3.141590 b=2.718180 y=1.155770
+falu32:op=0 a=3.141590 b=2.718180 y=5.859770
+falu32:op=1 a=3.141590 b=2.718180 y=0.423410
+falu32:op=2 a=3.141590 b=2.718180 y=8.539407
+falu32:op=3 a=3.141590 b=2.718180 y=1.155770
+falu32:op=0 a=3.141590 b=2.718180 y=5.859770
+falu32:op=1 a=3.141590 b=2.718180 y=0.423410
+falu32:op=2 a=3.141590 b=2.718180 y=8.539407
+falu32:op=3 a=3.141590 b=2.718180 y=1.155770
+falu32:op=0 a=3.141590 b=2.718180 y=5.859770
+falu32:op=1 a=3.141590 b=2.718180 y=0.423410
+falu32:op=2 a=3.141590 b=2.718180 y=8.539407
+falu32:op=3 a=3.141590 b=2.718180 y=1.155770
+falu32:op=0 a=3.141590 b=2.718180 y=5.859770
+falu32:op=1 a=3.141590 b=2.718180 y=0.423410
+falu32:op=2 a=3.141590 b=2.718180 y=8.539407
+falu32:op=3 a=3.141590 b=2.718180 y=1.155770</code></pre>
+<h3 id="使用-verilog-預設的浮點數運算"><a href="#使用-verilog-預設的浮點數運算">使用 Verilog 預設的浮點數運算</a></h3>
+<p>檔案： float.v</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> main;
+<span class="dt">real</span> x, y, x2, y2, xyadd, xysub, xymul, xydiv;
+<span class="dt">reg</span> [<span class="dv">63</span>:<span class="dv">0</span>] x1, y1;
+
+<span class="kw">initial</span> 
+<span class="kw">begin</span>
+  x=<span class="fl">3.14159</span>;
+  y=-<span class="fl">2.3e4</span>;
+  x1 = <span class="dt">$realtobits</span>(x);
+  x2 = <span class="dt">$bitstoreal</span>(x1);
+  y1 = <span class="dt">$realtobits</span>(y);
+  y2 = <span class="dt">$bitstoreal</span>(y1);
+  xyadd = x+y;
+  xysub = x-y;
+  xymul = x*y;
+  xydiv = x/y;
+  <span class="dt">$display</span>(<span class="st">&quot;x=%f x1=%b x2=%f&quot;</span>, x, x1, x2);
+  <span class="dt">$display</span>(<span class="st">&quot;y=%f y1=%b y2=%f&quot;</span>, y, y1, y2);
+  <span class="dt">$display</span>(<span class="st">&quot;x+y=%f xyadd=%f&quot;</span>, x+y, xyadd);
+  <span class="dt">$display</span>(<span class="st">&quot;x-y=%f xysub=%f&quot;</span>, x-y, xysub);
+  <span class="dt">$display</span>(<span class="st">&quot;x*y=%f xymul=%f&quot;</span>, x*y, xymul);
+  <span class="dt">$display</span>(<span class="st">&quot;x/y=%f xydiv=%f&quot;</span>, x/y, xydiv);
+<span class="kw">end</span>
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果：</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o float float.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp float
+x=3.141590 x1=0100000000001001001000011111100111110000000110111000011001101110 x
+2=3.141590
+y=-23000.000000 y1=1100000011010110011101100000000000000000000000000000000000000
+000 y2=-23000.000000
+x+y=-22996.858410 xyadd=-22996.858410
+x-y=23003.141590 xysub=23003.141590
+x*y=-72256.570000 xymul=-72256.570000
+x/y=-0.000137 xydiv=-0.000137</code></pre>
+<h3 id="自行設計浮點運算器"><a href="#自行設計浮點運算器">自行設計浮點運算器</a></h3>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="co">// https://instruct1.cit.cornell.edu/courses/ece576/StudentWork/ss868/fp/Reg27FP/FpMul.v</span>
+<span class="co">// https://instruct1.cit.cornell.edu/courses/ece576/StudentWork/ss868/fp/Reg27FP/FpAdd.v</span>
+<span class="co">// https://instruct1.cit.cornell.edu/courses/ece576/FloatingPoint/index.html#Schneider_fp</span>
+
+<span class="ot">`define F_SIGN               63</span>
+<span class="ot">`define F_EXP                62:52</span>
+<span class="ot">`define F_FRAC               51:0</span>
+
+<span class="co">// a = (-1)^a.s (1+a.f) * 2 ^ {a.e-1023} </span>
+<span class="co">// b = (-1)^b.s (1+b.f) * 2 ^ {b.e-1023} </span>
+<span class="co">// a*b = (-1)^(a.s xor b.s) (1+a.f) (1+b.f) * 2^{ (a.e+b.e-1023) - 1023}</span>
+<span class="co">//       z.s = a.s xor b.s  z.f = tail(...)   z.e = a.e+b.e-1023</span>
+<span class="kw">module</span> fmul(<span class="dt">input</span> [<span class="dv">63</span>:<span class="dv">0</span>] a, <span class="dt">input</span> [<span class="dv">63</span>:<span class="dv">0</span>] b, <span class="dt">output</span> [<span class="dv">63</span>:<span class="dv">0</span>] z);
+    <span class="dt">wire</span>        a_s = a[<span class="ot">`F_SIGN</span>];
+    <span class="dt">wire</span> [<span class="dv">10</span>:<span class="dv">0</span>] a_e = a[<span class="ot">`F_EXP</span>];
+    <span class="dt">wire</span> [<span class="dv">51</span>:<span class="dv">0</span>] a_f = a[<span class="ot">`F_FRAC</span>];
+    <span class="dt">wire</span>        b_s = b[<span class="ot">`F_SIGN</span>];
+    <span class="dt">wire</span> [<span class="dv">10</span>:<span class="dv">0</span>] b_e = b[<span class="ot">`F_EXP</span>];
+    <span class="dt">wire</span> [<span class="dv">51</span>:<span class="dv">0</span>] b_f = b[<span class="ot">`F_FRAC</span>];
+
+    <span class="dt">wire</span>   z_s = a_s ^ b_s;<span class="co">// 正負號 z.s = a.s xor b.s</span>
+    <span class="dt">wire</span> [<span class="dv">105</span>:<span class="dv">0</span>] f = {<span class="bn">1&#39;b1</span>, a_f} * {<span class="bn">1&#39;b1</span>, b_f}; <span class="co">// 小數部分： f = {1, a.f} * {1, b.f}</span>
+    <span class="dt">wire</span> [<span class="dv">11</span>:<span class="dv">0</span>]  e = a_e + b_e - <span class="bn">12&#39;d1023</span>; <span class="co">// 指數部份： e = a.e + b.e - 1023</span>
+    <span class="dt">wire</span> [<span class="dv">51</span>:<span class="dv">0</span>]  z_f = f[<span class="dv">105</span>] ? f[<span class="dv">104</span>:<span class="dv">53</span>] : f[<span class="dv">103</span>:<span class="dv">52</span>]; <span class="co">// 若最高位 f[105] == 1，則取 z.f[104:53]，否則取 z.f[103:52]</span>
+    <span class="dt">wire</span> [<span class="dv">10</span>:<span class="dv">0</span>]  z_e = f[<span class="dv">105</span>] ? e[<span class="dv">10</span>:<span class="dv">0</span>]+<span class="dv">1</span> : e[<span class="dv">10</span>:<span class="dv">0</span>]; <span class="co">// 若最高位 f[105] == 1，則取 z.e 要上升 1 (???)，否則不變 </span>
+    <span class="dt">wire</span> underflow = a_e[<span class="dv">10</span>] &amp; b_e[<span class="dv">10</span>] &amp; ~z_e[<span class="dv">10</span>];  <span class="co">// underflow</span>
+    <span class="kw">assign</span> z = underflow ? <span class="bn">64&#39;b0</span> : {z_s, z_e, z_f}; <span class="co">// 若 underflow，則傳回零，否則傳回 z={z.s, z.e, z.f}。</span>
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main;
+<span class="dt">real</span> x, y, z;
+<span class="dt">reg</span> [<span class="dv">63</span>:<span class="dv">0</span>] x1, y1;
+<span class="dt">wire</span> [<span class="dv">63</span>:<span class="dv">0</span>] z1;
+
+fmul f1(x1, y1, z1);
+
+<span class="kw">initial</span> 
+<span class="kw">begin</span>
+<span class="co">//  x=7.00;  y=-9.00;</span>
+<span class="co">//  x=6.00;  y=8.00;</span>
+<span class="co">//  x=301.00;  y=200.00;</span>
+  x=<span class="fl">1.75</span>;  y=<span class="fl">1.75</span>;
+  x1 = <span class="dt">$realtobits</span>(x);
+  y1 = <span class="dt">$realtobits</span>(y);
+  <span class="bn">#100</span>;
+  <span class="dt">$display</span>(<span class="st">&quot;a.s=%b a.e=%b a.f=%b&quot;</span>, f1.a_s, f1.a_e, f1.a_f);
+  <span class="dt">$display</span>(<span class="st">&quot;a.s=%b b.e=%b b.f=%b&quot;</span>, f1.b_s, f1.b_e, f1.b_f);
+  <span class="dt">$display</span>(<span class="st">&quot;e=%b </span><span class="ch">\n</span><span class="st">f=%b </span><span class="ch">\n</span><span class="st">underflow=%b&quot;</span>, f1.e, f1.f, f1.underflow);
+  <span class="dt">$display</span>(<span class="st">&quot;z.s=%b z.e=%b z.f=%b&quot;</span>, f1.z_s, f1.z_e, f1.z_f);
+
+  z = <span class="dt">$bitstoreal</span>(z1);
+  <span class="dt">$display</span>(<span class="st">&quot;x=%f y=%f z=%f&quot;</span>, x, y, z);
+  <span class="dt">$display</span>(<span class="st">&quot;x1=%b </span><span class="ch">\n</span><span class="st">y1=%b </span><span class="ch">\n</span><span class="st">z1=%b&quot;</span>, x1, y1, z1);
+<span class="kw">end</span>
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o fpu64 fpu64.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp fpu64
+a.s=0 a.e=01111111111 a.f=1100000000000000000000000000000000000000000000000000
+a.s=0 b.e=01111111111 b.f=1100000000000000000000000000000000000000000000000000
+e=001111111111
+f=110001000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000
+underflow=0
+z.s=0 z.e=10000000000 z.f=1000100000000000000000000000000000000000000000000000
+x=1.750000 y=1.750000 z=3.062500
+x1=0011111111111100000000000000000000000000000000000000000000000000
+y1=0011111111111100000000000000000000000000000000000000000000000000
+z1=0100000000001000100000000000000000000000000000000000000000000000</code></pre>
+<h3 id="參考文獻"><a href="#參考文獻">參考文獻</a></h3>
+<ul>
+<li>http://en.wikipedia.org/wiki/Single-precision_floating-point_format</li>
+<li>http://en.wikipedia.org/wiki/Double-precision_floating-point_format</li>
+</ul>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

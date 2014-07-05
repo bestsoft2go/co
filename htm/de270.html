@@ -1,0 +1,493 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<p>參考：https://courses.cit.cornell.edu/ece576/DE2/index.html</p>
+<p>https://courses.cit.cornell.edu/ece576/DE2/RS232/DE2_TOP.v</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="co">///////////////////////////////////////////////////////////////////////////</span>
+<span class="co">//</span>
+<span class="co">// Serial transmitter test code</span>
+<span class="co">// Bruce Land, Cornell University 2010</span>
+<span class="co">//</span>
+<span class="co">// Serial transmit module written by James Du (jsd46) and Peter Greczner (pag42)</span>
+<span class="co">// for their final project in ECE 5760, cornell university, 2009</span>
+<span class="co">// http://instruct1.cit.cornell.edu/courses/ece576/FinalProjects/f2009/jsd46_pag42/jsd46_pag42/</span>
+<span class="co">//</span>
+<span class="co">//</span>
+<span class="co">////////////////////////////////////////////////////////////////////////////</span>
+
+<span class="kw">module</span> DE2_TOP (
+    <span class="co">// Clock Input</span>
+    <span class="dt">input</span>         CLOCK_27,    <span class="co">// 27 MHz</span>
+    <span class="dt">input</span>         CLOCK_50,    <span class="co">// 50 MHz</span>
+    <span class="dt">input</span>         EXT_CLOCK,   <span class="co">// External Clock</span>
+    <span class="co">// Push Button</span>
+    <span class="dt">input</span>  [<span class="dv">3</span>:<span class="dv">0</span>]  KEY,         <span class="co">// Pushbutton[3:0]</span>
+    <span class="co">// DPDT Switch</span>
+    <span class="dt">input</span>  [<span class="dv">17</span>:<span class="dv">0</span>] SW,          <span class="co">// Toggle Switch[17:0]</span>
+    <span class="co">// 7-SEG Display</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX0,        <span class="co">// Seven Segment Digit 0</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX1,        <span class="co">// Seven Segment Digit 1</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX2,        <span class="co">// Seven Segment Digit 2</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX3,        <span class="co">// Seven Segment Digit 3</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX4,        <span class="co">// Seven Segment Digit 4</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX5,        <span class="co">// Seven Segment Digit 5</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX6,        <span class="co">// Seven Segment Digit 6</span>
+    <span class="dt">output</span> [<span class="dv">6</span>:<span class="dv">0</span>]  HEX7,        <span class="co">// Seven Segment Digit 7</span>
+    <span class="co">// LED</span>
+    <span class="dt">output</span> [<span class="dv">8</span>:<span class="dv">0</span>]  LEDG,        <span class="co">// LED Green[8:0]</span>
+    <span class="dt">output</span> [<span class="dv">17</span>:<span class="dv">0</span>] LEDR,        <span class="co">// LED Red[17:0]</span>
+    <span class="co">// UART</span>
+    <span class="dt">output</span>        UART_TXD,    <span class="co">// UART Transmitter</span>
+    <span class="dt">input</span>         UART_RXD,    <span class="co">// UART Receiver</span>
+    <span class="co">// IRDA</span>
+    <span class="dt">output</span>        IRDA_TXD,    <span class="co">// IRDA Transmitter</span>
+    <span class="dt">input</span>         IRDA_RXD,    <span class="co">// IRDA Receiver</span>
+    <span class="co">// SDRAM Interface</span>
+    <span class="dt">inout</span>  [<span class="dv">15</span>:<span class="dv">0</span>] DRAM_DQ,     <span class="co">// SDRAM Data bus 16 Bits</span>
+    <span class="dt">output</span> [<span class="dv">11</span>:<span class="dv">0</span>] DRAM_ADDR,   <span class="co">// SDRAM Address bus 12 Bits</span>
+    <span class="dt">output</span>        DRAM_LDQM,   <span class="co">// SDRAM Low-byte Data Mask </span>
+    <span class="dt">output</span>        DRAM_UDQM,   <span class="co">// SDRAM High-byte Data Mask</span>
+    <span class="dt">output</span>        DRAM_WE_N,   <span class="co">// SDRAM Write Enable</span>
+    <span class="dt">output</span>        DRAM_CAS_N,  <span class="co">// SDRAM Column Address Strobe</span>
+    <span class="dt">output</span>        DRAM_RAS_N,  <span class="co">// SDRAM Row Address Strobe</span>
+    <span class="dt">output</span>        DRAM_CS_N,   <span class="co">// SDRAM Chip Select</span>
+    <span class="dt">output</span>        DRAM_BA_0,   <span class="co">// SDRAM Bank Address 0</span>
+    <span class="dt">output</span>        DRAM_BA_1,   <span class="co">// SDRAM Bank Address 0</span>
+    <span class="dt">output</span>        DRAM_CLK,    <span class="co">// SDRAM Clock</span>
+    <span class="dt">output</span>        DRAM_CKE,    <span class="co">// SDRAM Clock Enable</span>
+    <span class="co">// Flash Interface</span>
+    <span class="dt">inout</span>  [<span class="dv">7</span>:<span class="dv">0</span>]  FL_DQ,       <span class="co">// FLASH Data bus 8 Bits</span>
+    <span class="dt">output</span> [<span class="dv">21</span>:<span class="dv">0</span>] FL_ADDR,     <span class="co">// FLASH Address bus 22 Bits</span>
+    <span class="dt">output</span>        FL_WE_N,     <span class="co">// FLASH Write Enable</span>
+    <span class="dt">output</span>        FL_RST_N,    <span class="co">// FLASH Reset</span>
+    <span class="dt">output</span>        FL_OE_N,     <span class="co">// FLASH Output Enable</span>
+    <span class="dt">output</span>        FL_CE_N,     <span class="co">// FLASH Chip Enable</span>
+    <span class="co">// SRAM Interface</span>
+    <span class="dt">inout</span>  [<span class="dv">15</span>:<span class="dv">0</span>] SRAM_DQ,     <span class="co">// SRAM Data bus 16 Bits</span>
+    <span class="dt">output</span> [<span class="dv">17</span>:<span class="dv">0</span>] SRAM_ADDR,   <span class="co">// SRAM Address bus 18 Bits</span>
+    <span class="dt">output</span>        SRAM_UB_N,   <span class="co">// SRAM High-byte Data Mask </span>
+    <span class="dt">output</span>        SRAM_LB_N,   <span class="co">// SRAM Low-byte Data Mask </span>
+    <span class="dt">output</span>        SRAM_WE_N,   <span class="co">// SRAM Write Enable</span>
+    <span class="dt">output</span>        SRAM_CE_N,   <span class="co">// SRAM Chip Enable</span>
+    <span class="dt">output</span>        SRAM_OE_N,   <span class="co">// SRAM Output Enable</span>
+    <span class="co">// ISP1362 Interface</span>
+    <span class="dt">inout</span>  [<span class="dv">15</span>:<span class="dv">0</span>] OTG_DATA,    <span class="co">// ISP1362 Data bus 16 Bits</span>
+    <span class="dt">output</span> [<span class="dv">1</span>:<span class="dv">0</span>]  OTG_ADDR,    <span class="co">// ISP1362 Address 2 Bits</span>
+    <span class="dt">output</span>        OTG_CS_N,    <span class="co">// ISP1362 Chip Select</span>
+    <span class="dt">output</span>        OTG_RD_N,    <span class="co">// ISP1362 Write</span>
+    <span class="dt">output</span>        OTG_WR_N,    <span class="co">// ISP1362 Read</span>
+    <span class="dt">output</span>        OTG_RST_N,   <span class="co">// ISP1362 Reset</span>
+    <span class="dt">output</span>        OTG_FSPEED,  <span class="co">// USB Full Speed, 0 = Enable, Z = Disable</span>
+    <span class="dt">output</span>        OTG_LSPEED,  <span class="co">// USB Low Speed,  0 = Enable, Z = Disable</span>
+    <span class="dt">input</span>         OTG_INT0,    <span class="co">// ISP1362 Interrupt 0</span>
+    <span class="dt">input</span>         OTG_INT1,    <span class="co">// ISP1362 Interrupt 1</span>
+    <span class="dt">input</span>         OTG_DREQ0,   <span class="co">// ISP1362 DMA Request 0</span>
+    <span class="dt">input</span>         OTG_DREQ1,   <span class="co">// ISP1362 DMA Request 1</span>
+    <span class="dt">output</span>        OTG_DACK0_N, <span class="co">// ISP1362 DMA Acknowledge 0</span>
+    <span class="dt">output</span>        OTG_DACK1_N, <span class="co">// ISP1362 DMA Acknowledge 1</span>
+    <span class="co">// LCD Module 16X2</span>
+    <span class="dt">inout</span>  [<span class="dv">7</span>:<span class="dv">0</span>]  LCD_DATA,    <span class="co">// LCD Data bus 8 bits</span>
+    <span class="dt">output</span>        LCD_ON,      <span class="co">// LCD Power ON/OFF</span>
+    <span class="dt">output</span>        LCD_BLON,    <span class="co">// LCD Back Light ON/OFF</span>
+    <span class="dt">output</span>        LCD_RW,      <span class="co">// LCD Read/Write Select, 0 = Write, 1 = Read</span>
+    <span class="dt">output</span>        LCD_EN,      <span class="co">// LCD Enable</span>
+    <span class="dt">output</span>        LCD_RS,      <span class="co">// LCD Command/Data Select, 0 = Command, 1 = Data</span>
+    <span class="co">// SD Card Interface</span>
+    <span class="dt">inout</span>         SD_DAT,      <span class="co">// SD Card Data</span>
+    <span class="dt">inout</span>         SD_DAT3,     <span class="co">// SD Card Data 3</span>
+    <span class="dt">inout</span>         SD_CMD,      <span class="co">// SD Card Command Signal</span>
+    <span class="dt">output</span>        SD_CLK,      <span class="co">// SD Card Clock</span>
+    <span class="co">// I2C</span>
+    <span class="dt">inout</span>         I2C_SDAT,    <span class="co">// I2C Data</span>
+    <span class="dt">output</span>        I2C_SCLK,    <span class="co">// I2C Clock</span>
+    <span class="co">// PS2</span>
+    <span class="dt">input</span>         PS2_DAT,     <span class="co">// PS2 Data</span>
+    <span class="dt">input</span>         PS2_CLK,     <span class="co">// PS2 Clock</span>
+    <span class="co">// USB JTAG link</span>
+    <span class="dt">input</span>         TDI,         <span class="co">// CPLD -&gt; FPGA (data in)</span>
+    <span class="dt">input</span>         TCK,         <span class="co">// CPLD -&gt; FPGA (clk)</span>
+    <span class="dt">input</span>         TCS,         <span class="co">// CPLD -&gt; FPGA (CS)</span>
+    <span class="dt">output</span>        TDO,         <span class="co">// FPGA -&gt; CPLD (data out)</span>
+    <span class="co">// VGA</span>
+    <span class="dt">output</span>        VGA_CLK,     <span class="co">// VGA Clock</span>
+    <span class="dt">output</span>        VGA_HS,      <span class="co">// VGA H_SYNC</span>
+    <span class="dt">output</span>        VGA_VS,      <span class="co">// VGA V_SYNC</span>
+    <span class="dt">output</span>        VGA_BLANK,   <span class="co">// VGA BLANK</span>
+    <span class="dt">output</span>        VGA_SYNC,    <span class="co">// VGA SYNC</span>
+    <span class="dt">output</span> [<span class="dv">9</span>:<span class="dv">0</span>]  VGA_R,       <span class="co">// VGA Red[9:0]</span>
+    <span class="dt">output</span> [<span class="dv">9</span>:<span class="dv">0</span>]  VGA_G,       <span class="co">// VGA Green[9:0]</span>
+    <span class="dt">output</span> [<span class="dv">9</span>:<span class="dv">0</span>]  VGA_B,       <span class="co">// VGA Blue[9:0]</span>
+    <span class="co">// Ethernet Interface</span>
+    <span class="dt">inout</span>  [<span class="dv">15</span>:<span class="dv">0</span>] ENET_DATA,   <span class="co">// DM9000A DATA bus 16Bits</span>
+    <span class="dt">output</span>        ENET_CMD,    <span class="co">// DM9000A Command/Data Select, 0 = Command, 1 = Data</span>
+    <span class="dt">output</span>        ENET_CS_N,   <span class="co">// DM9000A Chip Select</span>
+    <span class="dt">output</span>        ENET_WR_N,   <span class="co">// DM9000A Write</span>
+    <span class="dt">output</span>        ENET_RD_N,   <span class="co">// DM9000A Read</span>
+    <span class="dt">output</span>        ENET_RST_N,  <span class="co">// DM9000A Reset</span>
+    <span class="dt">input</span>         ENET_INT,    <span class="co">// DM9000A Interrupt</span>
+    <span class="dt">output</span>        ENET_CLK,    <span class="co">// DM9000A Clock 25 MHz</span>
+    <span class="co">// Audio CODEC</span>
+    <span class="dt">inout</span>         AUD_ADCLRCK, <span class="co">// Audio CODEC ADC LR Clock</span>
+    <span class="dt">input</span>         AUD_ADCDAT,  <span class="co">// Audio CODEC ADC Data</span>
+    <span class="dt">inout</span>         AUD_DACLRCK, <span class="co">// Audio CODEC DAC LR Clock</span>
+    <span class="dt">output</span>        AUD_DACDAT,  <span class="co">// Audio CODEC DAC Data</span>
+    <span class="dt">inout</span>         AUD_BCLK,    <span class="co">// Audio CODEC Bit-Stream Clock</span>
+    <span class="dt">output</span>        AUD_XCK,     <span class="co">// Audio CODEC Chip Clock</span>
+    <span class="co">// TV Decoder</span>
+    <span class="dt">input</span>  [<span class="dv">7</span>:<span class="dv">0</span>]  TD_DATA,     <span class="co">// TV Decoder Data bus 8 bits</span>
+    <span class="dt">input</span>         TD_HS,       <span class="co">// TV Decoder H_SYNC</span>
+    <span class="dt">input</span>         TD_VS,       <span class="co">// TV Decoder V_SYNC</span>
+    <span class="dt">output</span>        TD_RESET,    <span class="co">// TV Decoder Reset</span>
+    <span class="co">// GPIO</span>
+    <span class="dt">inout</span>  [<span class="dv">35</span>:<span class="dv">0</span>] GPIO_0,      <span class="co">// GPIO Connection 0</span>
+    <span class="dt">inout</span>  [<span class="dv">35</span>:<span class="dv">0</span>] GPIO_1       <span class="co">// GPIO Connection 1</span>
+);
+
+   <span class="co">//Turn off all displays.</span>
+   <span class="kw">assign</span> HEX0 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX1 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX2 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX3 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX4 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX5 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX6 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> HEX7 = <span class="bn">7&#39;h7F</span>;
+   <span class="kw">assign</span> LEDR = <span class="bn">18&#39;h0</span>;
+   <span class="kw">assign</span> LEDG = <span class="bn">9&#39;h0</span>;
+   
+   <span class="co">//Set all GPIO to tri-state.</span>
+   <span class="kw">assign</span> GPIO_0 = <span class="bn">36&#39;hzzzzzzzzz</span>;
+   <span class="kw">assign</span> GPIO_1 = <span class="bn">36&#39;hzzzzzzzzz</span>;
+
+   <span class="co">//Disable audio codec.</span>
+   <span class="kw">assign</span> AUD_DACDAT = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> AUD_XCK    = <span class="bn">1&#39;b0</span>;
+
+   <span class="co">//Disable DRAM.</span>
+   <span class="kw">assign</span> DRAM_ADDR  = <span class="bn">12&#39;h0</span>;
+   <span class="kw">assign</span> DRAM_BA_0  = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> DRAM_BA_1  = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> DRAM_CAS_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> DRAM_CKE   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> DRAM_CLK   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> DRAM_CS_N  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> DRAM_DQ    = <span class="bn">16&#39;hzzzz</span>;
+   <span class="kw">assign</span> DRAM_LDQM  = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> DRAM_RAS_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> DRAM_UDQM  = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> DRAM_WE_N  = <span class="bn">1&#39;b1</span>;
+
+   <span class="co">//Disable Ethernet.</span>
+   <span class="kw">assign</span> ENET_CLK   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> ENET_CS_N  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> ENET_CMD   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> ENET_DATA  = <span class="bn">16&#39;hzzzz</span>;
+   <span class="kw">assign</span> ENET_RD_N  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> ENET_RST_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> ENET_WR_N  = <span class="bn">1&#39;b1</span>;
+
+   <span class="co">//Disable flash.</span>
+   <span class="kw">assign</span> FL_ADDR  = <span class="bn">22&#39;h0</span>;
+   <span class="kw">assign</span> FL_CE_N  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> FL_DQ    = <span class="bn">8&#39;hzz</span>;
+   <span class="kw">assign</span> FL_OE_N  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> FL_RST_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> FL_WE_N  = <span class="bn">1&#39;b1</span>;
+
+   <span class="co">//Disable LCD.</span>
+   <span class="kw">assign</span> LCD_BLON = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> LCD_DATA = <span class="bn">8&#39;hzz</span>;
+   <span class="kw">assign</span> LCD_EN   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> LCD_ON   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> LCD_RS   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> LCD_RW   = <span class="bn">1&#39;b0</span>;
+
+   <span class="co">//Disable OTG.</span>
+   <span class="kw">assign</span> OTG_ADDR    = <span class="bn">2&#39;h0</span>;
+   <span class="kw">assign</span> OTG_CS_N    = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_DACK0_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_DACK1_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_FSPEED  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_DATA    = <span class="bn">16&#39;hzzzz</span>;
+   <span class="kw">assign</span> OTG_LSPEED  = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_RD_N    = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_RST_N   = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> OTG_WR_N    = <span class="bn">1&#39;b1</span>;
+
+   <span class="co">//Disable SDRAM.</span>
+   <span class="kw">assign</span> SD_DAT = <span class="bn">1&#39;bz</span>;
+   <span class="kw">assign</span> SD_CLK = <span class="bn">1&#39;b0</span>;
+
+   <span class="co">//Disable SRAM.</span>
+   <span class="kw">assign</span> SRAM_ADDR = <span class="bn">18&#39;h0</span>;
+   <span class="kw">assign</span> SRAM_CE_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> SRAM_DQ   = <span class="bn">16&#39;hzzzz</span>;
+   <span class="kw">assign</span> SRAM_LB_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> SRAM_OE_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> SRAM_UB_N = <span class="bn">1&#39;b1</span>;
+   <span class="kw">assign</span> SRAM_WE_N = <span class="bn">1&#39;b1</span>;
+
+   <span class="co">//Disable VGA.</span>
+   <span class="kw">assign</span> VGA_CLK   = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> VGA_BLANK = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> VGA_SYNC  = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> VGA_HS    = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> VGA_VS    = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> VGA_R     = <span class="bn">10&#39;h0</span>;
+   <span class="kw">assign</span> VGA_G     = <span class="bn">10&#39;h0</span>;
+   <span class="kw">assign</span> VGA_B     = <span class="bn">10&#39;h0</span>;
+
+   <span class="co">//Disable all other peripherals.</span>
+   <span class="kw">assign</span> I2C_SCLK = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> IRDA_TXD = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> TD_RESET = <span class="bn">1&#39;b0</span>;
+   <span class="kw">assign</span> TDO = <span class="bn">1&#39;b0</span>;
+   <span class="co">//assign UART_TXD = 1&#39;b0;</span>
+    
+    <span class="co">/////////////////////////////////////////////////////////////</span>
+    <span class="co">// reset define</span>
+    <span class="dt">wire</span> reset ;
+    <span class="kw">assign</span> reset = ~KEY[<span class="dv">0</span>] ;
+    
+    <span class="co">////////////////////////////////////////////////////////////</span>
+    <span class="co">// characters to send</span>
+    <span class="co">// generate a new character at a settable rate</span>
+    <span class="co">// from the printable characters</span>
+    <span class="co">//</span>
+    <span class="dt">reg</span> [<span class="dv">7</span>:<span class="dv">0</span>] data ; 
+    <span class="dt">wire</span> data_out ; <span class="co">// copy of UART_TXD to send to GPIO connector</span>
+    <span class="dt">reg</span> sendNew ; <span class="co">// flag to UART that data is ready</span>
+    <span class="co">// data_rate MUST be lower than max supported at a given baud rate</span>
+    <span class="co">//10000 at 115200 baud ; 3500 at 38400 baud ; </span>
+    <span class="dt">parameter</span> data_rate = <span class="dv">20</span> ; <span class="co">// bytes per second</span>
+    <span class="dt">parameter</span> data_rate_set =  <span class="dv">50000000</span>/data_rate ; <span class="co">// assumes clock rate of 50e6</span>
+    <span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] data_rate_counter ;
+    <span class="co">// this example just cycles thru the printable characters:</span>
+    <span class="dt">parameter</span> first_char = <span class="bn">8&#39;d48</span> ; <span class="co">// &#39;0&#39;</span>
+    <span class="dt">parameter</span> last_char = <span class="bn">8&#39;d122</span> ; <span class="co">// &#39;z&#39;</span>
+    
+    <span class="co">// the data rate generator:</span>
+    <span class="kw">always</span> @(<span class="kw">posedge</span> CLOCK_50)
+    <span class="kw">begin</span>
+        <span class="kw">if</span> (reset) 
+        <span class="kw">begin</span>
+            data &lt;= first_char ;
+            sendNew &lt;= <span class="dv">0</span> ;
+        <span class="kw">end</span>
+        
+        <span class="co">// set the rate at which bytes are sent:</span>
+        <span class="co">// NOTE that there is NO check to see if</span>
+        <span class="co">// UART is done, so don&#39;t go too fast</span>
+        <span class="kw">if</span> (data_rate_counter == data_rate_set) 
+        <span class="kw">begin</span>
+            data_rate_counter &lt;= <span class="bn">32&#39;d0</span> ;
+            <span class="co">// and send some changing data</span>
+            sendNew &lt;= <span class="dv">1</span> ; <span class="co">// one cycle data strobe</span>
+            <span class="co">// cycle thru all characters</span>
+            <span class="kw">if</span> (data &gt; last_char) data &lt;= first_char ;
+            <span class="kw">else</span> data &lt;= data + <span class="bn">8&#39;d1</span> ;
+        <span class="kw">end</span>
+        <span class="kw">else</span> 
+        <span class="kw">begin</span>
+            data_rate_counter &lt;= data_rate_counter + <span class="dv">1</span> ;
+            sendNew &lt;= <span class="dv">0</span> ; <span class="co">// clear data strobe</span>
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+    
+    <span class="co">//output to scope and uart transmit pin</span>
+    <span class="kw">assign</span> GPIO_0[<span class="dv">1</span>] = data_out ;
+    <span class="kw">assign</span> UART_TXD = data_out ;
+    
+    <span class="co">/////////////////////////////////////////////////////////////</span>
+    <span class="co">// baud clock</span>
+    <span class="co">//</span>
+    <span class="dt">reg</span> baud_clock ;
+    <span class="dt">reg</span> [<span class="dv">31</span>:<span class="dv">0</span>] baud_counter ;
+    <span class="co">// uart works at 115200, 38400, 9600 baud ;</span>
+    <span class="dt">parameter</span> baud_rate = <span class="dv">115200</span> ; <span class="co">// 38400 ; //9600 ;</span>
+    <span class="dt">parameter</span> baud_set = (<span class="dv">50000000</span>/(<span class="dv">2</span>*baud_rate)) - <span class="dv">1</span> ; <span class="co">// assumes clock rate of 50e6</span>
+    
+    <span class="co">// baud clock generator</span>
+    <span class="kw">always</span> @(<span class="kw">posedge</span> CLOCK_50)
+    <span class="kw">begin</span>
+        <span class="kw">if</span> (reset) baud_counter &lt;= <span class="bn">32&#39;d0</span> ;
+        <span class="kw">if</span> (baud_counter == baud_set) 
+        <span class="kw">begin</span>
+            baud_counter &lt;= <span class="bn">32&#39;d0</span> ;
+            baud_clock &lt;= ~baud_clock ;
+        <span class="kw">end</span>
+        <span class="kw">else</span> baud_counter &lt;= baud_counter + <span class="dv">1</span> ;
+    <span class="kw">end</span>
+    <span class="co">// testing ooutput</span>
+    <span class="kw">assign</span> GPIO_0[<span class="dv">0</span>] = baud_clock ;
+    
+    <span class="co">// interface to uart module</span>
+    
+    SerialTransmitter_improved uart(
+        .CLOCK_50(CLOCK_50),    <span class="co">// input 50MHz clock</span>
+        .UART_TXD(data_out),    <span class="co">// output external serial transmitter line</span>
+        .toTransmit(data),      <span class="co">// input Byte to transmit</span>
+        .reset(reset) ,             <span class="co">// input reset signal</span>
+    <span class="co">//output dataSent_out,      // output was the data sent completely?</span>
+        .sendNew(sendNew),      <span class="co">// input should we send the new data?</span>
+    <span class="co">//output idle, //are we currently in idle transmit mode?</span>
+    <span class="co">//output [7:0] lastTransmit, //the last byte transmitted</span>
+        .baud_clock(baud_clock)     <span class="co">// input the baud clock</span>
+    );
+   
+<span class="kw">endmodule</span>
+
+<span class="co">//////////////////////////////////////////////////////////////////////////</span>
+<span class="co">//</span>
+<span class="co">// Serial module written by James Du (jsd46) and Peter Greczner (pag42)</span>
+<span class="co">// for their final project in ECE 5760, cornell university, 2009</span>
+<span class="co">// http://instruct1.cit.cornell.edu/courses/ece576/FinalProjects/f2009/jsd46_pag42/jsd46_pag42/</span>
+<span class="co">//</span>
+<span class="co">//////////////////////////////////////////////////////////////////////////</span>
+<span class="kw">module</span> SerialTransmitter_improved( 
+    <span class="dt">input</span> CLOCK_50, <span class="co">//50MHz clock</span>
+    <span class="dt">output</span>  UART_TXD, <span class="co">//Serial transmitter</span>
+    <span class="dt">input</span> [<span class="dv">7</span>:<span class="dv">0</span>] toTransmit, <span class="co">//Byte to transmit</span>
+    <span class="dt">input</span> reset, <span class="co">//reset signal</span>
+    <span class="dt">output</span> dataSent_out, <span class="co">//was the data sent completely?</span>
+    <span class="dt">input</span> sendNew, <span class="co">//should we send the new data?</span>
+    <span class="dt">output</span> idle, <span class="co">//are we currently in idle transmit mode?</span>
+    <span class="dt">output</span> [<span class="dv">7</span>:<span class="dv">0</span>] lastTransmit, <span class="co">//the last byte transmitted</span>
+    <span class="dt">input</span> baud_clock <span class="co">//the baud clock</span>
+    );
+    
+    <span class="dt">reg</span> [<span class="dv">7</span>:<span class="dv">0</span>] txd, last_txd; <span class="co">//transmitted byte registers</span>
+    <span class="dt">reg</span> [<span class="dv">3</span>:<span class="dv">0</span>] currBit; <span class="co">//current bit of byte to transmit</span>
+    <span class="dt">reg</span> [<span class="dv">3</span>:<span class="dv">0</span>] transmitState;  <span class="co">//the transmit state</span>
+    
+    <span class="dt">parameter</span> [<span class="dv">3</span>:<span class="dv">0</span>] idleWait = <span class="bn">4&#39;d0</span>, <span class="co">//transmit is idel</span>
+                    sendStartBit = <span class="bn">4&#39;d1</span>, <span class="co">//sending start bit</span>
+                    sendData = <span class="bn">4&#39;d2</span>, <span class="co">//sending 8 bits of data</span>
+                    sendStopBit = <span class="bn">4&#39;d3</span>; <span class="co">//sending stop bit</span>
+                    
+    <span class="dt">reg</span> dataSent; <span class="co">//was the data sent?</span>
+    <span class="dt">reg</span> txd_out; <span class="co">//the current bit being send over UART</span>
+    <span class="dt">reg</span> should_send; <span class="co">//should we now start a transfer</span>
+    <span class="dt">reg</span> begin_bit ; <span class="co">// rising edge of baud clock waveform</span>
+    
+    <span class="kw">assign</span> idle = (transmitState == idleWait) ? <span class="bn">1&#39;b1</span> : <span class="bn">1&#39;b0</span>;
+    <span class="kw">assign</span> UART_TXD = txd_out;
+    <span class="kw">assign</span> dataSent_out = dataSent;
+    <span class="kw">assign</span> lastTransmit = last_txd;
+    
+    <span class="kw">always</span> @(<span class="kw">posedge</span> CLOCK_50)
+    <span class="kw">begin</span>
+        <span class="co">//if we got a send request and we are currently idle, then begin send</span>
+        <span class="kw">if</span>(sendNew &amp; (transmitState == idleWait)) <span class="kw">begin</span>
+            dataSent &lt;= <span class="dv">0</span>;
+            should_send &lt;= <span class="bn">1&#39;b1</span>;
+        <span class="kw">end</span>
+        
+        <span class="co">//reset all important variables</span>
+        <span class="kw">if</span>(reset) <span class="kw">begin</span>
+            transmitState &lt;= idleWait;
+            dataSent &lt;= <span class="dv">0</span>;
+            currBit &lt;= <span class="dv">0</span>;
+            txd &lt;= <span class="dv">0</span>;
+            txd_out &lt;= <span class="dv">1</span>;
+            should_send &lt;= <span class="dv">0</span>;
+            begin_bit &lt;= <span class="dv">0</span> ; 
+        <span class="kw">end</span>
+        
+        <span class="kw">else</span> <span class="kw">begin</span> <span class="co">// not reset</span>
+            <span class="kw">if</span> (baud_clock &amp; begin_bit) <span class="co">//if a baud tick has occured and this is the rising edge</span>
+            <span class="kw">begin</span>
+                <span class="co">// only do state machine on rising edge of baud clock</span>
+                <span class="co">// then reset begin_bit flag to note that rising edge has already occured</span>
+                begin_bit &lt;= <span class="dv">0</span> ; 
+                
+                <span class="kw">case</span>(transmitState)
+                    <span class="dv">idleWait:</span> <span class="kw">begin</span>
+                        txd_out &lt;= <span class="bn">1&#39;b1</span>; <span class="co">// idle level</span>
+                        <span class="kw">if</span>(should_send) <span class="kw">begin</span> 
+                            txd &lt;= toTransmit;
+                            last_txd &lt;= toTransmit;
+                            transmitState &lt;= sendStartBit; <span class="co">//begin transfer by entering send start bit state</span>
+                            dataSent &lt;= <span class="dv">0</span>;
+                            should_send &lt;= <span class="dv">0</span>;
+                        <span class="kw">end</span>
+                    <span class="kw">end</span>
+                    
+                    <span class="co">//send the start bit</span>
+                    <span class="dv">sendStartBit:</span> <span class="kw">begin</span>
+                        txd_out &lt;= <span class="bn">1&#39;b0</span>; <span class="co">//the start bit</span>
+                        transmitState &lt;= sendData;
+                        currBit &lt;= <span class="bn">4&#39;d0</span>; <span class="co">//reset the current data indice bit</span>
+                    <span class="kw">end</span>
+                    
+                    <span class="co">//send all 8 bits of data</span>
+                    <span class="dv">sendData:</span> <span class="kw">begin</span>
+                        txd_out &lt;= txd[currBit];
+                        currBit &lt;= currBit + <span class="bn">4&#39;d1</span>;
+                        <span class="co">//if all data was sent then enter the send stop bit state</span>
+                        <span class="kw">if</span>(currBit == <span class="bn">4&#39;d7</span>) <span class="kw">begin</span> 
+                            transmitState &lt;= sendStopBit;
+                        <span class="kw">end</span>
+                    <span class="kw">end</span>
+                    
+                    <span class="co">//send the stop bit</span>
+                    <span class="dv">sendStopBit:</span> <span class="kw">begin</span>
+                        txd_out &lt;= <span class="bn">1&#39;b1</span>;
+                        dataSent &lt;= <span class="dv">1</span>;
+                        transmitState &lt;= idleWait;
+                    <span class="kw">end</span> 
+                    
+                <span class="kw">endcase</span>
+                
+            <span class="kw">end</span> <span class="co">// if (baud_clock &amp; begin_bit)  </span>
+            
+            <span class="co">// interlock so state machine only goes once/baud_clock</span>
+            <span class="co">// on the rising edge of baud clock waveform</span>
+            <span class="kw">else</span> <span class="kw">if</span> (~baud_clock &amp; ~begin_bit)
+            <span class="kw">begin</span>
+                begin_bit &lt;= <span class="dv">1</span> ; <span class="co">// </span>
+            <span class="kw">end</span>
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+<span class="kw">endmodule</span></code></pre>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

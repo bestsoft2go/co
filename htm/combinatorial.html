@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#組合邏輯-combinatorial-logic">組合邏輯 (Combinatorial Logic)</a><ul>
+<li><a href="#簡介">簡介</a></li>
+<li><a href="#加法器">加法器</a></li>
+<li><a href="#位元加法器">32 位元加法器</a></li>
+<li><a href="#前瞻進位加法器-carry-lookahead-adder">前瞻進位加法器 (Carry Lookahead Adder)</a></li>
+<li><a href="#結語">結語</a></li>
+<li><a href="#參考文獻">參考文獻</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="組合邏輯-combinatorial-logic"><a href="#組合邏輯-combinatorial-logic">組合邏輯 (Combinatorial Logic)</a></h1>
+<h2 id="簡介"><a href="#簡介">簡介</a></h2>
+<p>在數位電路當中，邏輯電路通常被分為兩類，一類是沒有「回饋線路」(No feedback) 的組合邏輯電路 (Combinatorial Logic)， 另一類是有「回饋線路」的循序邏輯電路 (Sequential Logic)。</p>
+<p>組合邏輯的線路只是將輸入訊號轉換成輸出訊號，像是加法器、多工器等都是組合邏輯電路的範例，由於中間不會暫存，因此無法記憶位元。 而循序邏輯由於有回饋線路，所以可以製作出像 Flip-Flop，Latch 等記憶單元，可以記憶位元。</p>
+<p>在本文中，我們將先專注在組合邏輯上，看看如何用基本的閘級寫法，寫出像多工器、加法器、減法器等組成 CPU 的基礎 電路元件。</p>
+<h2 id="加法器"><a href="#加法器">加法器</a></h2>
+<p>接著、讓我們用先前已經示範過的全加器範例，一個一個連接成四位元的加法器，電路圖如下所示</p>
+<div class="figure">
+<img src="../img/adder4.png" alt="圖、用 4 個全加器組成 4 位元加法器" /><p class="caption">圖、用 4 個全加器組成 4 位元加法器</p>
+</div>
+<p>上圖寫成 Verilog 就變成以下 adder4 模組的程式內容。</p>
+<pre class="sourceCode Verilog"><code class="sourceCode verilog"><span class="kw">module</span> adder4(<span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] a, <span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] b, <span class="dt">input</span> c_in, <span class="dt">output</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] sum, <span class="dt">output</span> c_out);
+<span class="dt">wire</span> [<span class="dv">3</span>:<span class="dv">0</span>] c;
+
+fulladder fa1(a[<span class="dv">0</span>],b[<span class="dv">0</span>], c_in, sum[<span class="dv">0</span>], c[<span class="dv">1</span>]) ;
+fulladder fa2(a[<span class="dv">1</span>],b[<span class="dv">1</span>], c[<span class="dv">1</span>], sum[<span class="dv">1</span>], c[<span class="dv">2</span>]) ;
+fulladder fa3(a[<span class="dv">2</span>],b[<span class="dv">2</span>], c[<span class="dv">2</span>], sum[<span class="dv">2</span>], c[<span class="dv">3</span>]) ;
+fulladder fa4(a[<span class="dv">3</span>],b[<span class="dv">3</span>], c[<span class="dv">3</span>], sum[<span class="dv">3</span>], c_out) ;
+
+<span class="kw">endmodule</span></code></pre>
+<p>以下是完整的 4 位元加法器之 Verilog 程式。</p>
+<p>檔案：<a href="https://dl.dropboxusercontent.com/u/101584453/pmag/201309/code/adder4.v">adder4.v</a></p>
+<pre class="sourceCode Verilog"><code class="sourceCode verilog"><span class="kw">module</span> fulladder (<span class="dt">input</span> a, b, c_in, <span class="dt">output</span> sum, c_out);
+<span class="dt">wire</span> s1, c1, c2;
+
+<span class="dt">xor</span> g1(s1, a, b);
+<span class="dt">xor</span> g2(sum, s1, c_in);
+<span class="dt">and</span> g3(c1, a,b);
+<span class="dt">and</span> g4(c2, s1, c_in) ;
+<span class="dt">xor</span> g5(c_out, c2, c1) ;
+
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> adder4(<span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] a, <span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] b, <span class="dt">input</span> c_in, <span class="dt">output</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] sum, <span class="dt">output</span> c_out);
+<span class="dt">wire</span> [<span class="dv">3</span>:<span class="dv">0</span>] c;
+
+fulladder fa1(a[<span class="dv">0</span>],b[<span class="dv">0</span>], c_in, sum[<span class="dv">0</span>], c[<span class="dv">1</span>]) ;
+fulladder fa2(a[<span class="dv">1</span>],b[<span class="dv">1</span>], c[<span class="dv">1</span>], sum[<span class="dv">1</span>], c[<span class="dv">2</span>]) ;
+fulladder fa3(a[<span class="dv">2</span>],b[<span class="dv">2</span>], c[<span class="dv">2</span>], sum[<span class="dv">2</span>], c[<span class="dv">3</span>]) ;
+fulladder fa4(a[<span class="dv">3</span>],b[<span class="dv">3</span>], c[<span class="dv">3</span>], sum[<span class="dv">3</span>], c_out) ;
+
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> main;
+<span class="dt">reg</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] a;
+<span class="dt">reg</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] b;
+<span class="dt">wire</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] sum;
+<span class="dt">wire</span> c_out;
+
+adder4 DUT (a, b, <span class="bn">1&#39;b0</span>, sum, c_out);
+
+<span class="kw">initial</span>
+<span class="kw">begin</span>
+  a = <span class="bn">4&#39;b0101</span>;
+  b = <span class="bn">4&#39;b0000</span>;
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#50</span> <span class="kw">begin</span>
+  b=b<span class="dv">+1</span>;
+  <span class="dt">$monitor</span>(<span class="st">&quot;%dns monitor: a=%d b=%d sum=%d&quot;</span>, <span class="dt">$stime</span>, a, b, sum);
+<span class="kw">end</span>
+
+<span class="kw">initial</span> <span class="bn">#2000</span> <span class="dt">$finish</span>;
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\ccc101\icarus\ccc&gt;iverilog -o sadd4 sadd4.v
+
+D:\ccc101\icarus\ccc&gt;vvp sadd4
+        50ns monitor: a= 5 b= 1 sum= 6
+       100ns monitor: a= 5 b= 2 sum= 7
+       150ns monitor: a= 5 b= 3 sum=-8
+       200ns monitor: a= 5 b= 4 sum=-7
+       250ns monitor: a= 5 b= 5 sum=-6
+       300ns monitor: a= 5 b= 6 sum=-5
+       350ns monitor: a= 5 b= 7 sum=-4
+       400ns monitor: a= 5 b=-8 sum=-3
+       450ns monitor: a= 5 b=-7 sum=-2
+       500ns monitor: a= 5 b=-6 sum=-1
+       550ns monitor: a= 5 b=-5 sum= 0
+       600ns monitor: a= 5 b=-4 sum= 1
+       650ns monitor: a= 5 b=-3 sum= 2
+       700ns monitor: a= 5 b=-2 sum= 3
+       750ns monitor: a= 5 b=-1 sum= 4
+       800ns monitor: a= 5 b= 0 sum= 5
+       850ns monitor: a= 5 b= 1 sum= 6
+       900ns monitor: a= 5 b= 2 sum= 7
+       950ns monitor: a= 5 b= 3 sum=-8
+      1000ns monitor: a= 5 b= 4 sum=-7
+      1050ns monitor: a= 5 b= 5 sum=-6
+      1100ns monitor: a= 5 b= 6 sum=-5
+      1150ns monitor: a= 5 b= 7 sum=-4
+      1200ns monitor: a= 5 b=-8 sum=-3
+      1250ns monitor: a= 5 b=-7 sum=-2
+      1300ns monitor: a= 5 b=-6 sum=-1
+      1350ns monitor: a= 5 b=-5 sum= 0
+      1400ns monitor: a= 5 b=-4 sum= 1
+      1450ns monitor: a= 5 b=-3 sum= 2
+      1500ns monitor: a= 5 b=-2 sum= 3
+      1550ns monitor: a= 5 b=-1 sum= 4
+      1600ns monitor: a= 5 b= 0 sum= 5
+      1650ns monitor: a= 5 b= 1 sum= 6
+      1700ns monitor: a= 5 b= 2 sum= 7
+      1750ns monitor: a= 5 b= 3 sum=-8
+      1800ns monitor: a= 5 b= 4 sum=-7
+      1850ns monitor: a= 5 b= 5 sum=-6
+      1900ns monitor: a= 5 b= 6 sum=-5
+      1950ns monitor: a= 5 b= 7 sum=-4
+      2000ns monitor: a= 5 b=-8 sum=-3</code></pre>
+<p>在上述執行結果中，您可以看到在沒有溢位的情況下，sum = a+b，但是一但加總值超過 7 之後，那就會變成負值，這也正是有號二補數表示法 溢位時會產生的結果。</p>
+<h2 id="位元加法器"><a href="#位元加法器">32 位元加法器</a></h2>
+<p>當然、上述的四位元加法器的範圍，只能從 -8 到 +7，這個範圍實在太小了，並不具備任何實用性，但是萬事起頭難，只要您能夠做出 四位元加法器，那麼就可以利用這個元件進行串接，將 8 個四位元加法器串接起來，立刻得到了一組 32 位元的加法器，以下是 這個 32 位元加法器的模組定義。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> adder32(<span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] a, <span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] b, <span class="dt">input</span> c_in, <span class="dt">output</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] sum, <span class="dt">output</span> c_out);
+<span class="dt">wire</span> [<span class="dv">7</span>:<span class="dv">0</span>] c;
+
+adder4 a0(a[<span class="dv">3</span>:<span class="dv">0</span>]  ,b[<span class="dv">3</span>:<span class="dv">0</span>],   c_in, sum[<span class="dv">3</span>:<span class="dv">0</span>],  c[<span class="dv">0</span>]) ;
+adder4 a1(a[<span class="dv">7</span>:<span class="dv">4</span>]  ,b[<span class="dv">7</span>:<span class="dv">4</span>],   c[<span class="dv">0</span>], sum[<span class="dv">7</span>:<span class="dv">4</span>],  c[<span class="dv">1</span>]) ;
+adder4 a2(a[<span class="dv">11</span>:<span class="dv">8</span>] ,b[<span class="dv">11</span>:<span class="dv">8</span>],  c[<span class="dv">1</span>], sum[<span class="dv">11</span>:<span class="dv">8</span>], c[<span class="dv">2</span>]) ;
+adder4 a3(a[<span class="dv">15</span>:<span class="dv">12</span>],b[<span class="dv">15</span>:<span class="dv">12</span>], c[<span class="dv">2</span>], sum[<span class="dv">15</span>:<span class="dv">12</span>],c[<span class="dv">3</span>]) ;
+adder4 a4(a[<span class="dv">19</span>:<span class="dv">16</span>],b[<span class="dv">19</span>:<span class="dv">16</span>], c[<span class="dv">3</span>], sum[<span class="dv">19</span>:<span class="dv">16</span>],c[<span class="dv">4</span>]) ;
+adder4 a5(a[<span class="dv">23</span>:<span class="dv">20</span>],b[<span class="dv">23</span>:<span class="dv">20</span>], c[<span class="dv">4</span>], sum[<span class="dv">23</span>:<span class="dv">20</span>],c[<span class="dv">5</span>]) ;
+adder4 a6(a[<span class="dv">27</span>:<span class="dv">24</span>],b[<span class="dv">27</span>:<span class="dv">24</span>], c[<span class="dv">5</span>], sum[<span class="dv">27</span>:<span class="dv">24</span>],c[<span class="dv">6</span>]) ;
+adder4 a7(a[<span class="dv">31</span>:<span class="dv">28</span>],b[<span class="dv">31</span>:<span class="dv">28</span>], c[<span class="dv">6</span>], sum[<span class="dv">31</span>:<span class="dv">28</span>],c_out);
+
+<span class="kw">endmodule</span></code></pre>
+<p>有了這個模組之後，您就可以寫出下列完整的程式，以測試驗證該 32 位元加法器是否正確了。</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> fulladder (<span class="dt">input</span> a, b, c_in, <span class="dt">output</span> sum, c_out);
+<span class="dt">wire</span> s1, c1, c2;
+
+<span class="dt">xor</span> g1(s1, a, b);
+<span class="dt">xor</span> g2(sum, s1, c_in);
+<span class="dt">and</span> g3(c1, a,b);
+<span class="dt">and</span> g4(c2, s1, c_in) ;
+<span class="dt">xor</span> g5(c_out, c2, c1) ;
+
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> adder4(<span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] a, <span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] b, <span class="dt">input</span> c_in, <span class="dt">output</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] sum, <span class="dt">output</span> c_out);
+<span class="dt">wire</span> [<span class="dv">3</span>:<span class="dv">0</span>] c;
+
+fulladder fa1(a[<span class="dv">0</span>],b[<span class="dv">0</span>], c_in, sum[<span class="dv">0</span>], c[<span class="dv">1</span>]) ;
+fulladder fa2(a[<span class="dv">1</span>],b[<span class="dv">1</span>], c[<span class="dv">1</span>], sum[<span class="dv">1</span>], c[<span class="dv">2</span>]) ;
+fulladder fa3(a[<span class="dv">2</span>],b[<span class="dv">2</span>], c[<span class="dv">2</span>], sum[<span class="dv">2</span>], c[<span class="dv">3</span>]) ;
+fulladder fa4(a[<span class="dv">3</span>],b[<span class="dv">3</span>], c[<span class="dv">3</span>], sum[<span class="dv">3</span>], c_out) ;
+
+<span class="kw">endmodule</span>
+
+<span class="kw">module</span> adder32(<span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] a, <span class="dt">input</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] b, <span class="dt">input</span> c_in, <span class="dt">output</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] sum, <span class="dt">output</span> c_out);
+<span class="dt">wire</span> [<span class="dv">7</span>:<span class="dv">0</span>] c;
+
+adder4 a0(a[<span class="dv">3</span>:<span class="dv">0</span>]  ,b[<span class="dv">3</span>:<span class="dv">0</span>],   c_in, sum[<span class="dv">3</span>:<span class="dv">0</span>],  c[<span class="dv">0</span>]) ;
+adder4 a1(a[<span class="dv">7</span>:<span class="dv">4</span>]  ,b[<span class="dv">7</span>:<span class="dv">4</span>],   c[<span class="dv">0</span>], sum[<span class="dv">7</span>:<span class="dv">4</span>],  c[<span class="dv">1</span>]) ;
+adder4 a2(a[<span class="dv">11</span>:<span class="dv">8</span>] ,b[<span class="dv">11</span>:<span class="dv">8</span>],  c[<span class="dv">1</span>], sum[<span class="dv">11</span>:<span class="dv">8</span>], c[<span class="dv">2</span>]) ;
+adder4 a3(a[<span class="dv">15</span>:<span class="dv">12</span>],b[<span class="dv">15</span>:<span class="dv">12</span>], c[<span class="dv">2</span>], sum[<span class="dv">15</span>:<span class="dv">12</span>],c[<span class="dv">3</span>]) ;
+adder4 a4(a[<span class="dv">19</span>:<span class="dv">16</span>],b[<span class="dv">19</span>:<span class="dv">16</span>], c[<span class="dv">3</span>], sum[<span class="dv">19</span>:<span class="dv">16</span>],c[<span class="dv">4</span>]) ;
+adder4 a5(a[<span class="dv">23</span>:<span class="dv">20</span>],b[<span class="dv">23</span>:<span class="dv">20</span>], c[<span class="dv">4</span>], sum[<span class="dv">23</span>:<span class="dv">20</span>],c[<span class="dv">5</span>]) ;
+adder4 a6(a[<span class="dv">27</span>:<span class="dv">24</span>],b[<span class="dv">27</span>:<span class="dv">24</span>], c[<span class="dv">5</span>], sum[<span class="dv">27</span>:<span class="dv">24</span>],c[<span class="dv">6</span>]) ;
+adder4 a7(a[<span class="dv">31</span>:<span class="dv">28</span>],b[<span class="dv">31</span>:<span class="dv">28</span>], c[<span class="dv">6</span>], sum[<span class="dv">31</span>:<span class="dv">28</span>],c_out);
+
+<span class="kw">endmodule</span>
+
+
+<span class="kw">module</span> main;
+<span class="dt">reg</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] a;
+<span class="dt">reg</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] b;
+<span class="dt">wire</span> <span class="dt">signed</span> [<span class="dv">31</span>:<span class="dv">0</span>] sum;
+<span class="dt">wire</span> c_out;
+
+adder32 DUT (a, b, <span class="dv">0</span>, sum, c_out);
+
+<span class="kw">initial</span>
+<span class="kw">begin</span>
+  a = <span class="dv">60000000</span>;
+  b =  <span class="dv">3789621</span>;
+  <span class="dt">$monitor</span>(<span class="st">&quot;%dns monitor: a=%d b=%d sum=%d&quot;</span>, <span class="dt">$stime</span>, a, b, sum);
+<span class="kw">end</span>
+
+<span class="kw">always</span> <span class="bn">#50</span> <span class="kw">begin</span>
+  b=b<span class="dv">-1000000</span>;
+<span class="kw">end</span>
+
+<span class="kw">initial</span> <span class="bn">#500</span> <span class="dt">$finish</span>;
+
+<span class="kw">endmodule</span></code></pre>
+<p>然後、我們就可以用 icarus 進行測試，以下是測試結果：</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o adder32 adder32.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp adder32
+         0ns monitor: a=   60000000 b=    3789621 sum=   63789621
+        50ns monitor: a=   60000000 b=    2789621 sum=   62789621
+       100ns monitor: a=   60000000 b=    1789621 sum=   61789621
+       150ns monitor: a=   60000000 b=     789621 sum=   60789621
+       200ns monitor: a=   60000000 b=    -210379 sum=   59789621
+       250ns monitor: a=   60000000 b=   -1210379 sum=   58789621
+       300ns monitor: a=   60000000 b=   -2210379 sum=   57789621
+       350ns monitor: a=   60000000 b=   -3210379 sum=   56789621
+       400ns monitor: a=   60000000 b=   -4210379 sum=   55789621
+       450ns monitor: a=   60000000 b=   -5210379 sum=   54789621
+       500ns monitor: a=   60000000 b=   -6210379 sum=   53789621</code></pre>
+<p>您可以看到 sum 的確是 a+b 的結果，因此這個 32 位元加法器的初步驗證是正確的。</p>
+<h2 id="前瞻進位加法器-carry-lookahead-adder"><a href="#前瞻進位加法器-carry-lookahead-adder">前瞻進位加法器 (Carry Lookahead Adder)</a></h2>
+<div class="figure">
+<img src="../img/CarryLookaheadAdder.jpg" alt="圖、4 位元前瞻進位加法器圖片來源： http://en.wikipedia.org/wiki/File:4-bit_carry_lookahead_adder.svg" /><p class="caption">圖、4 位元前瞻進位加法器<br/>圖片來源： <a href="http://en.wikipedia.org/wiki/File:4-bit_carry_lookahead_adder.svg">http://en.wikipedia.org/wiki/File:4-bit_carry_lookahead_adder.svg</a></p>
+</div>
+<p>檔案：cladder4.v</p>
+<pre class="sourceCode verilog"><code class="sourceCode verilog"><span class="kw">module</span> cladder4(<span class="dt">output</span> [<span class="dv">3</span>:<span class="dv">0</span>] S, <span class="dt">output</span> Cout,PG,GG, <span class="dt">input</span> [<span class="dv">3</span>:<span class="dv">0</span>] A,B, <span class="dt">input</span> Cin);
+  <span class="dt">wire</span> [<span class="dv">3</span>:<span class="dv">0</span>] G,P,C;
+
+  <span class="kw">assign</span> G = A &amp; B; <span class="co">//Generate</span>
+  <span class="kw">assign</span> P = A ^ B; <span class="co">//Propagate</span>
+  <span class="kw">assign</span> C[<span class="dv">0</span>] = Cin;
+  <span class="kw">assign</span> C[<span class="dv">1</span>] = G[<span class="dv">0</span>] | (P[<span class="dv">0</span>]&amp;C[<span class="dv">0</span>]);
+  <span class="kw">assign</span> C[<span class="dv">2</span>] = G[<span class="dv">1</span>] | (P[<span class="dv">1</span>]&amp;G[<span class="dv">0</span>]) | (P[<span class="dv">1</span>]&amp;P[<span class="dv">0</span>]&amp;C[<span class="dv">0</span>]);
+  <span class="kw">assign</span> C[<span class="dv">3</span>] = G[<span class="dv">2</span>] | (P[<span class="dv">2</span>]&amp;G[<span class="dv">1</span>]) | (P[<span class="dv">2</span>]&amp;P[<span class="dv">1</span>]&amp;G[<span class="dv">0</span>]) | (P[<span class="dv">2</span>]&amp;P[<span class="dv">1</span>]&amp;P[<span class="dv">0</span>]&amp;C[<span class="dv">0</span>]);
+  <span class="kw">assign</span> Cout = G[<span class="dv">3</span>] | (P[<span class="dv">3</span>]&amp;G[<span class="dv">2</span>]) | (P[<span class="dv">3</span>]&amp;P[<span class="dv">2</span>]&amp;G[<span class="dv">1</span>]) | (P[<span class="dv">3</span>]&amp;P[<span class="dv">2</span>]&amp;P[<span class="dv">1</span>]&amp;G[<span class="dv">0</span>]) |(P[<span class="dv">3</span>]&amp;P[<span class="dv">2</span>]&amp;P[<span class="dv">1</span>]&amp;P[<span class="dv">0</span>]&amp;C[<span class="dv">0</span>]);
+  <span class="kw">assign</span> S = P ^ C;
+  <span class="kw">assign</span> PG = P[<span class="dv">3</span>] &amp; P[<span class="dv">2</span>] &amp; P[<span class="dv">1</span>] &amp; P[<span class="dv">0</span>];
+  <span class="kw">assign</span> GG = G[<span class="dv">3</span>] | (P[<span class="dv">3</span>]&amp;G[<span class="dv">2</span>]) | (P[<span class="dv">3</span>]&amp;P[<span class="dv">2</span>]&amp;G[<span class="dv">1</span>]) | (P[<span class="dv">3</span>]&amp;P[<span class="dv">2</span>]&amp;P[<span class="dv">1</span>]&amp;G[<span class="dv">0</span>]);
+<span class="kw">endmodule</span>
+
+
+<span class="kw">module</span> main;
+<span class="dt">reg</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] a;
+<span class="dt">reg</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] b;
+<span class="dt">wire</span> <span class="dt">signed</span> [<span class="dv">3</span>:<span class="dv">0</span>] sum;
+<span class="dt">wire</span> c_out;
+
+cladder4 DUT (sum, cout, pg, gg, a, b, <span class="dv">0</span>);
+
+<span class="kw">initial</span>
+<span class="kw">begin</span>
+  a = <span class="dv">5</span>;
+  b = -<span class="dv">3</span>;
+  <span class="dt">$monitor</span>(<span class="st">&quot;%dns monitor: a=%d b=%d sum=%d&quot;</span>, <span class="dt">$stime</span>, a, b, sum);
+<span class="kw">end</span>
+
+<span class="kw">endmodule</span></code></pre>
+<p>執行結果</p>
+<pre><code>D:\Dropbox\Public\web\oc\code&gt;iverilog -o cladder4 cladder4.v
+
+D:\Dropbox\Public\web\oc\code&gt;vvp cladder4
+         0ns monitor: a= 5 b=-3 sum= 2
+</code></pre>
+<h2 id="結語"><a href="#結語">結語</a></h2>
+<p>在本文中，我們大致將 CPU 設計當中最重要的組合邏輯電路，也就是「多工器、加法器、減法器」的設計原理說明完畢了，希望透過 Verilog 的實作方式， 能讓讀者更瞭解數位電路的設計原理，並且為接下來所要介紹的「處理器設計」進行鋪路的工作。</p>
+<h2 id="參考文獻"><a href="#參考文獻">參考文獻</a></h2>
+<ul>
+<li><a href="http://www.ece.lsu.edu/ee3755/2002/l07.html">LSU EE 3755 -- Spring 2002 -- Computer Organization : Verilog Notes 7 -- Integer Multiply and Divide</a></li>
+<li><a href="http://ccckmit.wikidot.com/ve:mux">陳鍾誠的網站：Verilog 電路設計 -- 多工器</a></li>
+<li><a href="http://ccckmit.wikidot.com/ve:adder4">陳鍾誠的網站：Verilog 電路設計 -- 4 位元加法器</a></li>
+<li><a href="http://ccckmit.wikidot.com/ve:addsub4">陳鍾誠的網站：Verilog 電路設計 -- 加減器</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Adder_(electronics)">Wikipedia:Adder</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Adder%E2%80%93subtractor">Wikipedia:Adder–subtractor</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Multiplexer">Wikipedia:Multiplexer</a></li>
+</ul>
+<p>【本文由陳鍾誠取材 (主要為圖片) 並修改自維基百科】</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

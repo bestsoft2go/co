@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#本書內容與相關資源">本書內容與相關資源</a></li>
+</ul>
+</div>
+<h2 id="本書內容與相關資源"><a href="#本書內容與相關資源">本書內容與相關資源</a></h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">主題</th>
+<th align="left">投影片</th>
+<th align="left">實作程式</th>
+<th align="left">教學影片</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">第 1 章. <a href="opencomputer.html">開放電腦計畫</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/goi-VUwUnjI">http://youtu.be/goi-VUwUnjI</a></td>
+</tr>
+<tr class="even">
+<td align="left">第 2 章. <a href="hardware.html">電腦硬體架構</a></td>
+<td align="left"><a href="https://dl.dropboxusercontent.com/u/101584453/web/oc/slide/co01_Overview.pdf">co01_Overview.pdf</a></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/goi-VUwUnjI">http://youtu.be/goi-VUwUnjI</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 計算機結構：簡介 1</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/PX2jDLoVLmg">http://youtu.be/PX2jDLoVLmg</a></td>
+</tr>
+<tr class="even">
+<td align="left">─ 計算機結構：簡介 2</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/_TUGe1GtJ6A">http://youtu.be/_TUGe1GtJ6A</a></td>
+</tr>
+<tr class="odd">
+<td align="left">第 3 章. <a href="verilog.html">硬體描述語言 -- Verilog</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">- <a href="verilog1.html">區塊式設計</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">- <a href="verilog2.html">流程式設計</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ Icarus</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/wIKqxZ-9cI0">http://youtu.be/wIKqxZ-9cI0</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ Verilog</td>
+<td align="left"></td>
+<td align="left"><a href="../code/xor3.v">xor3.v</a></td>
+<td align="left"><a href="http://youtu.be/m_pM57K1G80">http://youtu.be/m_pM57K1G80</a></td>
+</tr>
+<tr class="even">
+<td align="left">─ Quartus II</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/raf1IGnoFik">http://youtu.be/raf1IGnoFik</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ DE2-70</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/TOz4gyuUOgA">http://youtu.be/TOz4gyuUOgA</a></td>
+</tr>
+<tr class="even">
+<td align="left">第 4 章. <a href="combinatorial.html">組合邏輯</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 多工器</td>
+<td align="left"></td>
+<td align="left"><a href="../code/mux.v">mux.v</a></td>
+<td align="left"><a href="http://youtu.be/tMdq_WcMlMI">http://youtu.be/tMdq_WcMlMI</a></td>
+</tr>
+<tr class="even">
+<td align="left">─ 全加器</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"><a href="http://youtu.be/UD3o5XQNKfQ">http://youtu.be/UD3o5XQNKfQ</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 4 位元加法器</td>
+<td align="left"></td>
+<td align="left">[adder4.v]</td>
+<td align="left"><a href="http://youtu.be/t_0Q5Ddi4xE">http://youtu.be/t_0Q5Ddi4xE</a></td>
+</tr>
+<tr class="even">
+<td align="left">─ 4 位元加減器</td>
+<td align="left"></td>
+<td align="left">[addsub4.v]</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 4 位元快速加法器</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ N 位元加法器</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 乘法器</td>
+<td align="left"></td>
+<td align="left"><a href="../code/mult4.v">mult4.v</a></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 移位乘法器</td>
+<td align="left"></td>
+<td align="left"><a href="../code/shift_mult.v">shift_mult.v</a></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 除法器</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 浮點乘法器</td>
+<td align="left"></td>
+<td align="left">[fmult4.v]</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">第 5 章. <a href="alu.html">算術邏輯單元</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 算術邏輯單元 ALU</td>
+<td align="left"></td>
+<td align="left">[alu.v]</td>
+<td align="left"><a href="http://youtu.be/tMdq_WcMlMI">http://youtu.be/tMdq_WcMlMI</a></td>
+</tr>
+<tr class="odd">
+<td align="left">第 6 章. <a href="memory.html">記憶單元</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 正反器</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 栓鎖器</td>
+<td align="left"></td>
+<td align="left"><a href="../code/latch.v">latch.v</a></td>
+<td align="left"><a href="http://youtu.be/2EsDL8aGHgI">http://youtu.be/2EsDL8aGHgI</a></td>
+</tr>
+<tr class="even">
+<td align="left">─ 計數器</td>
+<td align="left"></td>
+<td align="left"><a href="../code/counter.v">counter.v</a></td>
+<td align="left"><a href="http://youtu.be/BlWFOpPSL1A">http://youtu.be/BlWFOpPSL1A</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 狀態機</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 多工器</td>
+<td align="left"></td>
+<td align="left"><a href="../code/mux.v">mux.v</a></td>
+<td align="left"><a href="http://youtu.be/KcbUO_VRQ0U">http://youtu.be/KcbUO_VRQ0U</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 暫存器</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 暫存器群</td>
+<td align="left"></td>
+<td align="left"><a href="../code/regbank.v">regbank.v</a></td>
+<td align="left"><a href="http://youtu.be/6zLPnv-PUBA">http://youtu.be/6zLPnv-PUBA</a></td>
+</tr>
+<tr class="odd">
+<td align="left">─ 8 位元記憶體</td>
+<td align="left"></td>
+<td align="left"><a href="../code/memory8.v">memory8.v</a></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ 32位元記憶體</td>
+<td align="left"></td>
+<td align="left"><a href="../code/memory32.v">memory32.v</a></td>
+<td align="left"><a href="http://youtu.be/dGmY6YhTbNw">http://youtu.be/dGmY6YhTbNw</a></td>
+</tr>
+<tr class="odd">
+<td align="left">第 7 章. <a href="control.html">控制單元</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">第 8 章. <a href="mcu.html">微處理器</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">- <a href="mcu0.html">MCU0 指令集</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">- <a href="mcu0m.html">MCU0 迷你版</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">- <a href="mcu0bm.html">MCU0 迷你版 (區塊設計)</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">- <a href="mcu0s.html">MCU0 完整版</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">第 9 章. <a href="io.html">中斷與輸出入</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">- <a href="mcu0i.html">MCU0 中斷處理</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">- <a href="mcu0io.html">MCU0 的輸出入</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">第 10 章. <a href="storage.html">記憶系統</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">- <a href="hierarchy.html">記憶體階層</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ <a href="cache.html">快取記憶體</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">第 11 章. <a href="cpu.html">高階處理器</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ <a href="harvard.html">哈佛架構</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ <a href="pipeline.html">流水線</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">- <a href="mcu0.html">CPU0 指令集</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">- <a href="cpu0m.html">CPU0 迷你版</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">- <a href="cpu0s.html">CPU0 完整版</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">第 12 章. <a href="speed.html">速度議題</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ <a href="mult.html">乘法與除法</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ <a href="fpu.html">浮點運算單元 FPU</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ <a href="graphics.html">繪圖加速功能</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">─ <a href="parallel.html">平行處理</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">─ <a href="end.html">結語</a></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<!--
+| - [MCU0 迷你版 (獨立記憶體+直接存取)](mcu0mb0.1.html) |                |                |                                           |
+| - [MCU0 迷你版 (獨立記憶體+匯流排)](mcu0mb.html) |                |                |                                           |
+-->
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>

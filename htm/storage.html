@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../css/pmag.css" type="text/css" />
+</head>
+<body>
+<div id="header_wrap">
+  <h1><a href="book.htm">開放電腦計畫 -- 計算機硬體結構</a><BR/><sub>(使用 Verilog 實作)</sub></h1>
+  <table id="bar" border="0" style="border:0;"><tr style="border:0;">
+    <td style="text-align:left;border:0;"> <a href="book.html">目錄</a> | <a href="download.html">下載</a> | <a href="course.html">課程</a> | <a href="forum.html">討論</a> | <a href="exam.html">測驗</a></td>
+    <td style="text-align:right;border:0;"><a href="http://ccckmit.wikidot.com/">陳鍾誠</a> 於 <a href="http://www.nqu.edu.tw/">金門大學</a></td>
+  </tr></table>
+</div>
+<div id="content">
+<div id="TOC">
+<ul>
+<li><a href="#記憶系統-storage">記憶系統 (Storage)</a></li>
+</ul>
+</div>
+<h1 id="記憶系統-storage"><a href="#記憶系統-storage">記憶系統 (Storage)</a></h1>
+<p>除了記憶體之外，電腦裏還有隨身碟、記憶卡、硬碟、光碟、磁帶等儲存裝置，這些裝置構成一整個儲存體系，只有充分考慮這些儲存體的速度問題，才能讓電腦得到最好的效能。</p>
+<p>事實上、記憶體也有很多種，而且速度不一，像是靜態記憶體 SRAM、動態記憶體 DRAM、唯讀記憶體 ROM 等等，而且靜態記憶體的速度又可以分為很多種等級，因此整個儲存體會形成一個多層次不同速度的記憶體階層。</p>
+<p>「高階處理器」與「微處理器」之間最大的差別，是「高階處理器」會利用各種記憶單元的速度差異，有效的安排並平衡「既快又大」的這種速度與大小的考量。</p>
+<p>因此、「高階處理器」通常有「快取」(cache)、「記憶體管理單元」(Memory Management Unit, MMU) 等機制，以便能讓電腦能夠「容量又大、速度又快」。</p>
+<p>要能夠讓「高階處理器」充分利用這種「記憶體階層」特性，首先讓我們來看看一個經典的「三階層」情況，那就是 (cache/memory/disk)，如下圖所示。</p>
+</div>
+<div id="footer">
+<a href="http://ccckmit.wikidot.com">陳鍾誠</a>衍生自<a href="http://zh.wikipedia.org/">維基百科</a>之作品：採用 <a href="http://creativecommons.org/licenses/by-sa/3.0/tw/ ">創作共用：姓名標示、相同方式分享</a> <a href="license.html">授權</a>
+</div>
+</body>
+</html>
